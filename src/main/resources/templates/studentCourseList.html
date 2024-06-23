@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>受講生コース情報一覧</title>
+</head>
+<body>
+<h1>受講生コース一覧</h1>
+<table border="1">
+  <thead>
+  <tr>
+    <th>ID</th>
+    <th>生徒ID</th>
+    <th>コース名</th>
+    <th>開始日時</th>
+    <th>修了予定日時</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr th:each="studentCourse : ${studentCourseList}">
+    <td th:text="${studentCourse.id}">1</td>
+    <td th:text="${studentCourse.studentId}">2</td>
+    <td th:text="${studentCourse.courseName}">Java</td>
+    <td th:text="${studentCourse.startDate}">2024年4月1日</td>
+    <td th:text="${studentCourse.endDate}">2025年4月1日</td>
+  </tr>
+  </tbody>
+</table>
+</body>
+</html>

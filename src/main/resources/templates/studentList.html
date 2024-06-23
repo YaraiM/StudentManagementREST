@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<!--名前空間の宣言。thを持つ属性をThymeleafの属性として認識させることができる-->
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>受講生一覧</title>
+</head>
+<body>
+<h1>受講生一覧</h1>
+<a th:href="@{/students/new}">新規登録</a>
+<br>
+<a th:href="@{/students/past}">過去の受講生一覧</a>
+<table border="1">
+  <thead>
+  <tr>
+    <th>ID</th>
+    <th>名前</th>
+    <th>ふりがな</th>
+    <th>ニックネーム</th>
+    <th>メールアドレス</th>
+    <th>住所</th>
+    <th>年齢</th>
+    <th>性別</th>
+    <th>受講コース</th>
+    <th>備考</th>
+    <th>更新</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr th:each="studentDetail : ${studentList}">
+    <!--  以下、タグ内のデフォルト値（山田太郎など）はプレースホルダ{fullnameなど}によって置き換えられる-->
+    <td th:text="${studentDetail.student.id}">1</td>
+    <td th:text="${studentDetail.student.fullname}">山田太郎</td>
+    <td th:text="${studentDetail.student.furigana}">やまだたろう</td>
+    <td th:text="${studentDetail.student.nickname}">やまちゃん</td>
+    <td th:text="${studentDetail.student.mail}">mailadress@example.com</td>
+    <td th:text="${studentDetail.student.address}">東京</td>
+    <td th:text="${studentDetail.student.age}">26</td>
+    <td th:text="${studentDetail.student.gender}">男性</td>
+    <td>
+      <span th:each="course, iterStat : ${studentDetail.studentCourse}">
+        <span th:text="${course.courseName}"></span>
+        <span th:if="${!iterStat.last}">,</span>
+      </span>
+    </td>
+    <td th:text="${studentDetail.student.remark}">特になし</td>
+    <td>
+      <a th:href="@{/students/{id}(id=${studentDetail.student.id})}"><p>更新</p></a>
+    </td>
+  </tr>
+  </tbody>
+</table>
+</body>
+</html>

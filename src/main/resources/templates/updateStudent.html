@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>受講生詳細</title>
+</head>
+<body>
+<h1>受講生詳細</h1>
+<form th:action="@{/students/update}" th:object="${studentDetail}" method="post">
+  <input type="hidden" th:field="*{student.id}" th:value="*{student.id}"/>
+  <div>
+    <label for="fullname">氏名（必須）:</label>
+    <input type="text" id="fullname" th:field="*{student.fullname}" required/>
+  </div>
+  <div>
+    <label for="furigana">ふりがな（必須）:</label>
+    <input type="text" id="furigana" th:field="*{student.furigana}" required/>
+  </div>
+  <div>
+    <label for="nickname">ニックネーム（任意）:</label>
+    <input type="text" id="nickname" th:field="*{student.nickname}"/>
+  </div>
+  <div>
+    <label for="mail">メールアドレス（必須）:</label>
+    <input type="text" id="mail" th:field="*{student.mail}" required/>
+  </div>
+  <div>
+    <label for="address">住所（任意）:</label>
+    <input type="text" id="address" th:field="*{student.address}"/>
+  </div>
+  <div>
+    <label for="age">年齢（任意）:</label>
+    <input type="text" id="age" th:field="*{student.age}"/>
+  </div>
+  <div>
+    <label for="gender">性別（任意）:</label>
+    <input type="text" id="gender" th:field="*{student.gender}"/>
+  </div>
+  <div>
+    <label for="remark">備考（任意）:</label>
+    <input type="text" id="remark" th:field="*{student.remark}"/>
+  </div>
+  <div th:each="course, stat : *{studentCourse}">
+    <!-- idをフォーム入力せずに既存のものと対応づけるため、ユーザーに見えない形で取得 -->
+    <input type="hidden" th:field="*{studentCourse[__${stat.index}__].id}"
+           th:value="*{studentCourse[__${stat.index}__].id}"/>
+    <label for="courseName"
+           th:for="*{studentCourse[__${stat.index}__].courseName}">受講コース:</label>
+    <input type="text" id="courseName" th:id="*{studentCourse[__${stat.index}__].courseName}"
+           th:field="*{studentCourse[__${stat.index}__].courseName}"
+           required/>
+  </div>
+  <div>
+    <label for="isDeleted">削除:</label>
+    <input type="checkbox" id="isDeleted" th:field="*{student.deleted}"/>
+  </div>
+  <div>
+    <button type="submit">更新</button>
+  </div>
+</form>
+</body>
+</html>
