@@ -42,15 +42,17 @@ public interface StudentRepository {
   /**
    * @return 受講生の情報をデータベースに登録する。
    */
-  @Insert("INSERT students values(#{id}, #{fullname}, #{furigana}, #{nickname}, #{mail}, #{address}, #{age}, #{gender}, #{remark}, #{isDeleted})")
-  // ↓SQLで自動生成されたidをStudentオブジェクトのidとして使用できるようにする。
+  @Insert(
+      "INSERT INTO students(fullname, furigana, nickname, mail, address, age, gender, remark, deleted)"
+          + "values(#{fullname}, #{furigana}, #{nickname}, #{mail}, #{address}, #{age}, #{gender}, #{remark}, false)")
   @Options(useGeneratedKeys = true, keyProperty = "id")
   void registerStudent(Student student);
 
   /**
    * @return 受講生コースの情報をデータベースに登録する。
    */
-  @Insert("INSERT students_courses values(#{id}, #{studentId}, #{courseName}, #{startDate}, #{endDate})")
+  @Insert("INSERT INTO students_courses(student_id, course_name, start_date, end_date)"
+      + "values(#{studentId}, #{courseName}, #{startDate}, #{endDate})")
   @Options(useGeneratedKeys = true, keyProperty = "id")
   void registerStudentCourse(StudentCourse studentCourse);
 
