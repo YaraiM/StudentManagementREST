@@ -7,54 +7,70 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import raisetech.student.management.controller.converter.StudentConverter;
-import raisetech.student.management.model.data.Student;
-import raisetech.student.management.model.data.StudentCourse;
 import raisetech.student.management.model.domain.StudentDetail;
 import raisetech.student.management.model.services.StudentService;
 
+/**
+ * 受講生の検索や登録、更新などを行うREST APIとして実行されるControllerです。
+ */
 @RestController
 public class StudentController {
 
   private final StudentService service;
-  private final StudentConverter converter;
-  private List<StudentDetail> studentsDetails;
 
-  public StudentController(StudentService service, StudentConverter converter) {
+  public StudentController(StudentService service) {
     this.service = service;
-    this.converter = converter;
   }
 
+  /**
+   * 受講生一覧検索です。 全件検索を行うので、条件指定は行いません。
+   *
+   * @return 受講生一覧（全件）
+   */
   @GetMapping("/students")
   public List<StudentDetail> getStudentList() {
-    List<Student> students = service.searchStudentList();
-    List<StudentCourse> studentsCourses = service.searchStudentsCourseList();
-    studentsDetails = converter.convertStudentDetails(students, studentsCourses);
-    return studentsDetails;
+    return service.searchStudentList();
   }
 
+  /**
+   * 過去の受講生一覧検索です。
+   *
+   * @return 過去の受講生一覧（全件）
+   */
   @GetMapping("/students/past")
   public List<StudentDetail> getPastStudentList() {
-    List<Student> students = service.searchStudentList();
-    List<StudentCourse> studentsCourses = service.searchStudentsCourseList();
-    studentsDetails = converter.convertStudentDetails(students, studentsCourses).stream()
-        .filter(studentDetail -> studentDetail.getStudent().isDeleted())
-        .toList();
-
-    return studentsDetails;
+    return service.searchPastStudentList();
   }
 
-  @GetMapping("/student")
+  /**
+   * 受講生検索です。 IDに紐づく任意の受講生の情報を取得します。
+   *
+   * @param id 受講生ID
+   * @return 受講生IDに紐づく受講生の詳細情報
+   */
+  @GetMapping("/students/detail")
   public StudentDetail getStudent(@RequestParam int id) {
     return service.searchStudent(id);
   }
 
+  /**
+   * 受講生の新規登録です。
+   *
+   * @param studentDetail 受講生の詳細情報
+   * @return 新規登録が成功した受講生の情報
+   */
   @PostMapping("/students/new")
-  public ResponseEntity<String> registerStudent(@RequestBody StudentDetail studentDetail) {
-    service.registerStudent(studentDetail);
-    return ResponseEntity.ok("新規登録処理が成功しました");
+  public ResponseEntity<StudentDetail> registerStudent(@RequestBody StudentDetail studentDetail) {
+    StudentDetail newStudentDetail = service.registerStudent(studentDetail);
+    return ResponseEntity.ok(newStudentDetail);
   }
 
+  /**
+   * 受講生の更新です。
+   *
+   * @param studentDetail 受講生の詳細情報
+   * @return 更新が成功した場合に「更新処理が成功しました」と表示
+   */
   @PostMapping("/students/update")
   public ResponseEntity<String> updateStudent(@RequestBody StudentDetail studentDetail) {
     service.updateStudent(studentDetail);
