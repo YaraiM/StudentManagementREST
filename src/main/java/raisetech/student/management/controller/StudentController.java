@@ -4,6 +4,7 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -43,7 +44,7 @@ public class StudentController {
   }
 
   /**
-   * 受講生検索です。 IDに紐づく任意の受講生の情報を取得します。
+   * 受講生の詳細情報の検索です。 IDに紐づく任意の受講生の情報を取得します。
    *
    * @param id 受講生ID
    * @return 受講生IDに紐づく受講生の詳細情報
@@ -54,10 +55,10 @@ public class StudentController {
   }
 
   /**
-   * 受講生の新規登録です。
+   * 受講生の詳細情報の新規登録です。
    *
    * @param studentDetail 受講生の詳細情報
-   * @return 新規登録が成功した受講生の情報
+   * @return 新規登録が成功した受講生の詳細情報
    */
   @PostMapping("/students/new")
   public ResponseEntity<StudentDetail> registerStudent(@RequestBody StudentDetail studentDetail) {
@@ -66,12 +67,12 @@ public class StudentController {
   }
 
   /**
-   * 受講生の更新です。
+   * 受講生の詳細情報の更新です。 キャンセルフラグの更新もここで行います。（論理削除）
    *
    * @param studentDetail 受講生の詳細情報
    * @return 更新が成功した場合に「更新処理が成功しました」と表示
    */
-  @PostMapping("/students/update")
+  @PutMapping("/students/update")
   public ResponseEntity<String> updateStudent(@RequestBody StudentDetail studentDetail) {
     service.updateStudent(studentDetail);
     return ResponseEntity.ok("更新処理が成功しました");

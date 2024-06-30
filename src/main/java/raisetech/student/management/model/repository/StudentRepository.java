@@ -38,7 +38,7 @@ public interface StudentRepository {
    * @return 受講生のコース情報（全件）
    */
   @Select("SELECT * FROM students_courses")
-  List<StudentCourse> searchStudentsCoursesList();
+  List<StudentCourse> searchStudentCoursesList();
 
   /**
    * 受講生IDに紐づく受講生コース情報を検索します。
@@ -47,10 +47,10 @@ public interface StudentRepository {
    * @return IDに紐づく受講生のコース情報
    */
   @Select("SELECT * FROM students_courses WHERE student_id = #{studentId}")
-  List<StudentCourse> searchStudentsCourses(int studentId);
+  List<StudentCourse> searchStudentCourses(int studentId);
 
   /**
-   * 新規の受講生の情報を受講生テーブルに追加します。
+   * 受講生の新規登録です。 新規の受講生の情報を受講生テーブルに追加します。
    *
    * @param student 新規受講生の情報
    */
@@ -61,17 +61,17 @@ public interface StudentRepository {
   void registerStudent(Student student);
 
   /**
-   * 新規の受講生コースの情報を受講生コーステーブルに追加します。
+   * 受講生コース情報の新規登録です。 新規の受講生コースの情報を受講生コーステーブルに追加します。
    *
    * @param studentCourse 新規受講生に登録するコース情報
    */
   @Insert("INSERT INTO students_courses(student_id, course_name, start_date, end_date)"
       + "values(#{studentId}, #{courseName}, #{startDate}, #{endDate})")
   @Options(useGeneratedKeys = true, keyProperty = "id")
-  void registerStudentCourse(StudentCourse studentCourse);
+  void registerStudentCourses(StudentCourse studentCourse);
 
   /**
-   * 受講生IDを参照して、該当する受講生の情報を受講生テーブルから検索し、その受講生情報を更新します。
+   * 受講生情報の更新です。受講生IDを参照して、受講生テーブルで該当する受講生情報を更新します。
    *
    * @param student 受講生の更新情報
    */
@@ -79,10 +79,10 @@ public interface StudentRepository {
   void updateStudent(Student student);
 
   /**
-   * 受講生IDを参照して、該当する受講生のコース情報を受講生コーステーブルから検索し、その受講生コース情報を更新します。
+   * 受講生のコース名の更新です。受講生IDを参照して、受講生コーステーブルで該当する受講生のコース名を更新します。
    *
    * @param studentCourse 受講生のコースの更新情報
    */
   @Update("UPDATE students_courses SET course_name=#{courseName} WHERE id=#{id}")
-  void updateStudentCourse(StudentCourse studentCourse);
+  void updateStudentCourses(StudentCourse studentCourse);
 }
