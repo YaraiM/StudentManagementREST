@@ -1,10 +1,7 @@
 package raisetech.student.management.model.repository;
 
 import java.util.List;
-import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Options;
-import org.apache.ibatis.annotations.Update;
 import raisetech.student.management.model.data.Student;
 import raisetech.student.management.model.data.StudentCourse;
 
@@ -49,10 +46,6 @@ public interface StudentRepository {
    *
    * @param student 新規受講生の情報
    */
-  @Insert(
-      "INSERT INTO students(fullname, furigana, nickname, mail, address, age, gender, remark, deleted)"
-          + "values(#{fullname}, #{furigana}, #{nickname}, #{mail}, #{address}, #{age}, #{gender}, #{remark}, false)")
-  @Options(useGeneratedKeys = true, keyProperty = "id")
   void registerStudent(Student student);
 
   /**
@@ -60,9 +53,6 @@ public interface StudentRepository {
    *
    * @param studentCourse 新規受講生に登録するコース情報
    */
-  @Insert("INSERT INTO students_courses(student_id, course_name, start_date, end_date)"
-      + "values(#{studentId}, #{courseName}, #{startDate}, #{endDate})")
-  @Options(useGeneratedKeys = true, keyProperty = "id")
   void registerStudentCourses(StudentCourse studentCourse);
 
   /**
@@ -70,7 +60,6 @@ public interface StudentRepository {
    *
    * @param student 受講生の更新情報
    */
-  @Update("UPDATE students SET fullname=#{fullname}, furigana=#{furigana}, nickname=#{nickname}, mail=#{mail}, address=#{address}, age=#{age}, gender=#{gender}, remark=#{remark}, deleted=#{deleted} WHERE id=#{id}")
   void updateStudent(Student student);
 
   /**
@@ -78,6 +67,5 @@ public interface StudentRepository {
    *
    * @param studentCourse 受講生のコースの更新情報
    */
-  @Update("UPDATE students_courses SET course_name=#{courseName} WHERE id=#{id}")
   void updateStudentCourses(StudentCourse studentCourse);
 }

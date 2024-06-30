@@ -26,4 +26,29 @@
     SELECT * FROM students_courses WHERE student_id = #{studentId}
   </select>
 
+  <!--  受講生情報の新規登録  -->
+  <insert id="registerStudent" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO students(fullname, furigana, nickname, mail, address, age, gender, remark, deleted)
+    values(#{fullname}, #{furigana}, #{nickname}, #{mail}, #{address}, #{age}, #{gender}, #{remark},
+    false)
+  </insert>
+
+  <!--  受講生のコース情報の新規登録  -->
+  <insert id="registerStudentCourses" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO students_courses(student_id, course_name, start_date, end_date) values(#{studentId},
+    #{courseName}, #{startDate}, #{endDate})
+  </insert>
+
+  <!--  受講生情報の更新  -->
+  <update id="updateStudent">
+    UPDATE students SET fullname=#{fullname}, furigana=#{furigana}, nickname=#{nickname},
+    mail=#{mail}, address=#{address}, age=#{age}, gender=#{gender}, remark=#{remark},
+    deleted=#{deleted} WHERE id=#{id}
+  </update>
+
+  <!--  受講生のコース情報の更新  -->
+  <update id="updateStudentCourses">
+    UPDATE students_courses SET course_name=#{courseName} WHERE id=#{id}
+  </update>
+
 </mapper>
