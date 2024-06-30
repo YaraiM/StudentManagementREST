@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="raisetech.student.management.model.repository.StudentRepository">
+
+  <!--  受講生情報の全件検索  -->
+  <select id="searchStudents" resultType="raisetech.student.management.model.data.Student">
+    SELECT * FROM students
+  </select>
+
+  <!--  受講生情報の検索  -->
+  <select id="searchStudent" resultType="raisetech.student.management.model.data.Student">
+    SELECT * FROM students WHERE id = #{id}
+  </select>
+
+  <!--  受講生のコース情報の全件検索  -->
+  <select id="searchStudentCoursesList"
+    resultType="raisetech.student.management.model.data.StudentCourse">
+    SELECT * FROM students_courses
+  </select>
+
+  <!--  受講生のコース情報の検索  -->
+  <select id="searchStudentCourses"
+    resultType="raisetech.student.management.model.data.StudentCourse">
+    SELECT * FROM students_courses WHERE student_id = #{studentId}
+  </select>
+
+</mapper>

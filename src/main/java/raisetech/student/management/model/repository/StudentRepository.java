@@ -4,7 +4,6 @@ import java.util.List;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Options;
-import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 import raisetech.student.management.model.data.Student;
 import raisetech.student.management.model.data.StudentCourse;
@@ -20,7 +19,6 @@ public interface StudentRepository {
    *
    * @return 受講生一覧（全件）
    */
-  @Select("SELECT * FROM students")
   List<Student> searchStudents();
 
   /**
@@ -29,7 +27,6 @@ public interface StudentRepository {
    * @param id 受講生ID
    * @return IDに紐づく受講生の情報
    */
-  @Select("SELECT * FROM students WHERE id = #{id}")
   Student searchStudent(int id);
 
   /**
@@ -37,7 +34,6 @@ public interface StudentRepository {
    *
    * @return 受講生のコース情報（全件）
    */
-  @Select("SELECT * FROM students_courses")
   List<StudentCourse> searchStudentCoursesList();
 
   /**
@@ -46,7 +42,6 @@ public interface StudentRepository {
    * @param studentId 受講生ID
    * @return IDに紐づく受講生のコース情報
    */
-  @Select("SELECT * FROM students_courses WHERE student_id = #{studentId}")
   List<StudentCourse> searchStudentCourses(int studentId);
 
   /**
