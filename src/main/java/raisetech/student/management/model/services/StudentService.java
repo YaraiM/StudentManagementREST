@@ -8,6 +8,7 @@ import raisetech.student.management.controller.converter.StudentConverter;
 import raisetech.student.management.model.data.Student;
 import raisetech.student.management.model.data.StudentCourse;
 import raisetech.student.management.model.domain.StudentDetail;
+import raisetech.student.management.model.exception.ResourceNotFoundException;
 import raisetech.student.management.model.repository.StudentRepository;
 
 /**
@@ -31,7 +32,7 @@ public class StudentService {
    */
   public List<StudentDetail> searchStudentList() {
     List<Student> students = repository.searchStudents();
-    List<StudentCourse> studentsCourses = repository.searchStudentsCoursesList();
+    List<StudentCourse> studentsCourses = repository.searchStudentCoursesList();
     return converter.convertStudentDetails(students, studentsCourses);
   }
 
@@ -42,7 +43,7 @@ public class StudentService {
    */
   public List<StudentDetail> searchPastStudentList() {
     List<Student> students = repository.searchStudents();
-    List<StudentCourse> studentsCourses = repository.searchStudentsCoursesList();
+    List<StudentCourse> studentsCourses = repository.searchStudentCoursesList();
     return converter.convertStudentDetails(students, studentsCourses).stream()
         .filter(studentDetail -> studentDetail.getStudent().isDeleted())
         .toList();
@@ -56,38 +57,60 @@ public class StudentService {
    */
   public StudentDetail searchStudent(int id) {
     Student student = repository.searchStudent(id);
-    List<StudentCourse> studentsCourses = repository.searchStudentsCourses(student.getId());
-    return new StudentDetail(student, studentsCourses);
+
+    if (student == null) {
+      throw new ResourceNotFoundException("受講生ID 「" + id + "」は存在しません");
+    }
+
+    List<StudentCourse> studentCourses = repository.searchStudentCourses(student.getId());
+    return new StudentDetail(student, studentCourses);
   }
 
   /**
-   * 受講生の新規登録です。 受講生の詳細情報から受講生の情報と受講生のコース情報を取り出し、それぞれ新規登録します。
+   * 受講生の詳細情報の新規登録です。 受講生の詳細情報から受講生の情報と受講生のコース情報を取り出し、それぞれ新規登録します。
+   * 新規登録の際、コース情報に初期情報（受講生ID、コース開始日、終了日）を自動で設定します。
    *
    * @param studentDetail 受講生の詳細情報
    * @return 新規登録される受講生の詳細情報
    */
   @Transactional
   public StudentDetail registerStudent(StudentDetail studentDetail) {
-    repository.registerStudent(studentDetail.getStudent());
-    for (StudentCourse studentCourse : studentDetail.getStudentCourses()) {
-      studentCourse.setStudentId(studentDetail.getStudent().getId());
-      studentCourse.setStartDate(LocalDateTime.now());
-      studentCourse.setEndDate(LocalDateTime.now().plusYears(1));
-      repository.registerStudentCourse(studentCourse);
-    }
+    Student student = studentDetail.getStudent();
+
+    repository.registerStudent(student);
+    studentDetail.getStudentCourses().forEach(studentCourse -> {
+      initStudentCourses(studentCourse, student);
+      repository.registerStudentCourses(studentCourse);
+    });
     return studentDetail;
   }
 
   /**
-   * 受講生の更新です。 受講生の詳細情報の受講生IDおよび受講生コースIDを参照して、 それぞれに紐づく受講生および受講生コース情報を更新します。
+   * 受講生コース情報を登録する際の初期情報（受講生ID、コース開始日、終了日）を登録するメソッドです。
+   *
+   * @param studentCourse 受講生コース情報
+   * @param student       受講生情報
+   */
+  private void initStudentCourses(StudentCourse studentCourse, Student student) {
+    LocalDateTime now = LocalDateTime.now();
+
+    studentCourse.setStudentId(student.getId());
+    studentCourse.setStartDate(now);
+    studentCourse.setEndDate(now.plusYears(1));
+  }
+
+  /**
+   * 受講生の詳細情報の更新です。 受講生の詳細情報の受講生IDおよび受講生コースIDを参照して、 それぞれに紐づく受講生および受講生コース情報を更新します。
    *
    * @param studentDetail 更新される受講生の詳細情報
    */
   @Transactional
   public void updateStudent(StudentDetail studentDetail) {
     repository.updateStudent(studentDetail.getStudent());
-    for (StudentCourse studentCourse : studentDetail.getStudentCourses()) {
-      repository.updateStudentCourse(studentCourse);
-    }
+    studentDetail.getStudentCourses().forEach(repository::updateStudentCourses);
   }
 }
+
+/**
+ * 受講生の詳細情報を検索する際に、存在しない情報を登録する際の初期情報（受講生ID、コース開始日、終了日）を登録するメソッドです。
+ */

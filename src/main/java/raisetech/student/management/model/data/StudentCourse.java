@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * 受講生のコース情報
+ * 受講生のコース情報のオブジェクトです。
  */
 @Getter
 @Setter
@@ -16,5 +16,5 @@ public class StudentCourse {
   private String courseName;
   private LocalDateTime startDate;
   private LocalDateTime endDate;
-  
+
 }
