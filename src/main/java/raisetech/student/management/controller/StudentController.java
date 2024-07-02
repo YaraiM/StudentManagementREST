@@ -1,8 +1,8 @@
 package raisetech.student.management.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
-import org.hibernate.validator.constraints.Range;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -59,21 +59,8 @@ public class StudentController {
    * @return 受講生IDに紐づく受講生の詳細情報
    */
   @GetMapping("/students/detail")
-  public StudentDetail getStudent(@RequestParam @Range(min = 1, max = 1000) int id) {
+  public StudentDetail getStudent(@RequestParam @NotNull int id) {
     return service.searchStudent(id);
-  }
-
-  /**
-   * 存在しないIDをパラメータ指定した場合に例外処理を行うメソッドです。
-   * ResourceNotFoundExceptionがスローされたときに呼び出され、ステータスコード404（NotFound）の例外メッセージを返します。
-   *
-   * @param ex 例外クラス（データが存在しない）
-   * @return 例外メッセージ
-   */
-  @ExceptionHandler(ResourceNotFoundException.class) // ResourceNotFoundExceptionがスローされたときに呼び出す
-  @ResponseStatus(HttpStatus.NOT_FOUND)  // ステータスコードを404に設定
-  public ErrorResponse handleResourceNotFoundException(ResourceNotFoundException ex) {
-    return new ErrorResponse(ex.getMessage());
   }
 
   /**
@@ -100,4 +87,18 @@ public class StudentController {
     service.updateStudent(studentDetail);
     return ResponseEntity.ok("更新処理が成功しました");
   }
+
+  /**
+   * 存在しないIDをパラメータ指定した場合に例外処理を行うメソッドです。
+   * ResourceNotFoundExceptionがスローされたときに呼び出され、ステータスコード404（NotFound）の例外メッセージを返します。
+   *
+   * @param ex 例外クラス（データが存在しない）
+   * @return 例外メッセージ
+   */
+  @ExceptionHandler(ResourceNotFoundException.class) // ResourceNotFoundExceptionがスローされたときに呼び出す
+  @ResponseStatus(HttpStatus.NOT_FOUND)  // ステータスコードを404に設定
+  public ErrorResponse handleResourceNotFoundException(ResourceNotFoundException ex) {
+    return new ErrorResponse(ex.getMessage());
+  }
 }
+
