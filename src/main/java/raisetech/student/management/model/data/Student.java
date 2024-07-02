@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * 受講生情報
+ * 受講生情報のオブジェクトです。
  */
 @Getter
 @Setter
