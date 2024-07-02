@@ -8,6 +8,7 @@ import raisetech.student.management.controller.converter.StudentConverter;
 import raisetech.student.management.model.data.Student;
 import raisetech.student.management.model.data.StudentCourse;
 import raisetech.student.management.model.domain.StudentDetail;
+import raisetech.student.management.model.exception.ResourceNotFoundException;
 import raisetech.student.management.model.repository.StudentRepository;
 
 /**
@@ -56,6 +57,11 @@ public class StudentService {
    */
   public StudentDetail searchStudent(int id) {
     Student student = repository.searchStudent(id);
+
+    if (student == null) {
+      throw new ResourceNotFoundException("受講生ID 「" + id + "」は存在しません");
+    }
+
     List<StudentCourse> studentCourses = repository.searchStudentCourses(student.getId());
     return new StudentDetail(student, studentCourses);
   }
@@ -104,3 +110,7 @@ public class StudentService {
     studentDetail.getStudentCourses().forEach(repository::updateStudentCourses);
   }
 }
+
+/**
+ * 受講生の詳細情報を検索する際に、存在しない情報を登録する際の初期情報（受講生ID、コース開始日、終了日）を登録するメソッドです。
+ */
