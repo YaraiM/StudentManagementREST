@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import raisetech.student.management.model.domain.StudentDetail;
 import raisetech.student.management.model.exception.ErrorResponse;
@@ -59,7 +58,7 @@ public class StudentController {
    * @return 受講生IDに紐づく受講生の詳細情報
    */
   @GetMapping("/students/detail")
-  public StudentDetail getStudent(@RequestParam @NotNull int id) {
+  public StudentDetail getStudent(@RequestParam @NotNull int id) throws ResourceNotFoundException {
     return service.searchStudent(id);
   }
 
@@ -96,9 +95,9 @@ public class StudentController {
    * @return 例外メッセージ
    */
   @ExceptionHandler(ResourceNotFoundException.class) // ResourceNotFoundExceptionがスローされたときに呼び出す
-  @ResponseStatus(HttpStatus.NOT_FOUND)  // ステータスコードを404に設定
-  public ErrorResponse handleResourceNotFoundException(ResourceNotFoundException ex) {
-    return new ErrorResponse(ex.getMessage());
+  public ResponseEntity<ErrorResponse> handleResourceNotFoundException(
+      ResourceNotFoundException ex) {
+    ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage());
+    return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
   }
 }
-
