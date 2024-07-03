@@ -22,17 +22,4 @@ public class GlobalExceptionHandler {
     return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
   }
 
-  /**
-   * 開発者が想定していない例外が発生した場合に共通して実行されるメソッドです。
-   *
-   * @param ex 例外クラス（想定しない例外）
-   * @return エラーレスポンス
-   */
-  @ExceptionHandler(Exception.class)
-  public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
-    ErrorResponse errorResponse = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(),
-        "予期せぬエラーが発生しました。");
-    return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
-  }
-
 }
