@@ -3,10 +3,8 @@ package raisetech.student.management.controller;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -14,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import raisetech.student.management.model.domain.StudentDetail;
-import raisetech.student.management.model.exception.ErrorResponse;
 import raisetech.student.management.model.exception.ResourceNotFoundException;
 import raisetech.student.management.model.services.StudentService;
 
@@ -54,7 +51,7 @@ public class StudentController {
   /**
    * 受講生の詳細情報の検索です。 IDに紐づく任意の受講生の情報を取得します。 存在しないIDをパラメータに指定してリクエストすると、404NotFoundを返します。
    *
-   * @param id 受講生ID（入力チェック：1~1000まで）
+   * @param id 受講生ID
    * @return 受講生IDに紐づく受講生の詳細情報
    */
   @GetMapping("/students/detail")
@@ -87,17 +84,4 @@ public class StudentController {
     return ResponseEntity.ok("更新処理が成功しました");
   }
 
-  /**
-   * 存在しないIDをパラメータ指定した場合に例外処理を行うメソッドです。
-   * ResourceNotFoundExceptionがスローされたときに呼び出され、ステータスコード404（NotFound）の例外メッセージを返します。
-   *
-   * @param ex 例外クラス（データが存在しない）
-   * @return 例外メッセージ
-   */
-  @ExceptionHandler(ResourceNotFoundException.class) // ResourceNotFoundExceptionがスローされたときに呼び出す
-  public ResponseEntity<ErrorResponse> handleResourceNotFoundException(
-      ResourceNotFoundException ex) {
-    ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage());
-    return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
-  }
 }
