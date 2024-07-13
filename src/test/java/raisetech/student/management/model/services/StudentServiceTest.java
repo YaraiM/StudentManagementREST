@@ -1,7 +1,10 @@
 package raisetech.student.management.model.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -17,6 +20,7 @@ import raisetech.student.management.controller.converter.StudentConverter;
 import raisetech.student.management.model.data.Student;
 import raisetech.student.management.model.data.StudentCourse;
 import raisetech.student.management.model.domain.StudentDetail;
+import raisetech.student.management.model.exception.ResourceNotFoundException;
 import raisetech.student.management.model.repository.StudentRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -106,5 +110,50 @@ class StudentServiceTest {
 
   }
 
+  @Test
+  void 受講生詳細の検索_正常系_リポジトリの処理を適切に呼び出して受講生IDに紐づく受講生情報と受講生コース情報が返ってくること()
+      throws ResourceNotFoundException {
+    // 事前準備
+    int id = 1;
+    Student student = new Student();
+    student.setId(id);
+
+    List<StudentCourse> studentCourses = new ArrayList<>();
+    StudentCourse studentCourse1 = new StudentCourse();
+    studentCourse1.setStudentId(student.getId());
+    studentCourses.add(studentCourse1);
+    StudentCourse studentCourse2 = new StudentCourse();
+    studentCourse2.setStudentId(student.getId());
+    studentCourses.add(studentCourse2);
+
+    when(repository.searchStudent(id)).thenReturn(student);
+    when(repository.searchStudentCourses(student.getId())).thenReturn(studentCourses);
+
+    // 実行
+    StudentDetail result = sut.searchStudent(id);
+
+    // 検証
+    verify(repository, times(1)).searchStudent(id);
+    verify(repository, times(1)).searchStudentCourses(student.getId());
+    assertNotNull(result);
+    assertEquals(student, result.getStudent()); // result（StudentDetail）のStudent属性はstudentになっているか
+    assertEquals(studentCourses, result.getStudentCourses());
+    assertEquals(2, result.getStudentCourses().size());
+  }
+
+  @Test
+  void 受講生詳細の検索_異常系_存在しない受講生IDをメソッドに渡した場合に例外がスローされること()
+      throws ResourceNotFoundException {
+    // 事前準備
+    int id = 777;
+    Student student = new Student();
+    when(repository.searchStudent(id)).thenReturn(null);
+
+    // 実行と検証：searchStudent(777)を走らせたときにResourceNotFoundExceptionが発生するかどうか
+    assertThrows(ResourceNotFoundException.class, () -> sut.searchStudent(id));
+
+    verify(repository, times(1)).searchStudent(id);
+    verify(repository, never()).searchStudentCourses(student.getId());
+  }
 
 }
