@@ -209,4 +209,29 @@ class StudentServiceTest {
 
   }
 
+  @Test
+  void 受講生詳細情報の更新_リポジトリの処理を適切に呼び出していること() {
+    // 事前準備
+    Student student = new Student();
+
+    List<StudentCourse> studentCourses = new ArrayList<>();
+    StudentCourse studentCourse1 = new StudentCourse();
+    StudentCourse studentCourse2 = new StudentCourse();
+    studentCourses.add(studentCourse1);
+    studentCourses.add(studentCourse2);
+
+    StudentDetail studentDetail = new StudentDetail(student, studentCourses);
+
+    doNothing().when(repository).updateStudent(any(Student.class));
+    doNothing().when(repository).updateStudentCourses(any(StudentCourse.class));
+
+    // 実行
+    sut.updateStudent(studentDetail);
+
+    // 検証
+    verify(repository, times(1)).updateStudent(student);
+    verify(repository, times(2)).updateStudentCourses(any(StudentCourse.class));
+
+  }
+
 }
