@@ -4,11 +4,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -132,7 +136,7 @@ class StudentServiceTest {
     // 実行
     StudentDetail result = sut.searchStudent(id);
 
-    // 検証
+    // 検証 TODO:studentCoursesのすべての要素におけるstudentIdがidに一致しているかを検証する
     verify(repository, times(1)).searchStudent(id);
     verify(repository, times(1)).searchStudentCourses(student.getId());
     assertNotNull(result);
@@ -154,6 +158,50 @@ class StudentServiceTest {
 
     verify(repository, times(1)).searchStudent(id);
     verify(repository, never()).searchStudentCourses(student.getId());
+  }
+
+  @Test
+  void 受講生詳細情報の新規登録_リポジトリの処理を適切に呼び出したうえで受講生コース情報の初期情報が適切に登録されていること() {
+    // 事前準備
+    int id = 1;
+    Student student = new Student();
+    student.setId(id);
+
+    List<StudentCourse> studentCourses = new ArrayList<>();
+    StudentCourse studentCourse1 = new StudentCourse();
+    StudentCourse studentCourse2 = new StudentCourse();
+    studentCourses.add(studentCourse1);
+    studentCourses.add(studentCourse2);
+
+    StudentDetail studentDetail = new StudentDetail(student, studentCourses);
+
+    doNothing().when(repository).registerStudent(any(Student.class));
+    doNothing().when(repository).registerStudentCourses(any(StudentCourse.class));
+
+    LocalDateTime testStartTime = LocalDateTime.now();
+
+    // 実行
+    StudentDetail result = sut.registerStudent(studentDetail);
+
+    // 検証
+    verify(repository, times(1)).registerStudent(student);
+    verify(repository, times(2)).registerStudentCourses(any(StudentCourse.class));
+    assertNotNull(result);
+    assertEquals(student, result.getStudent());
+    assertEquals(2, result.getStudentCourses().size());
+
+    for (StudentCourse studentCourse : result.getStudentCourses()) {
+      assertEquals(id, studentCourse.getStudentId());
+      assertTrue(
+          studentCourse.getStartDate().isAfter(testStartTime) || studentCourse.getStartDate()
+              .isEqual(testStartTime));
+      assertTrue(
+          studentCourse.getEndDate().isAfter(studentCourse.getStartDate()));
+      assertEquals(1,
+          ChronoUnit.YEARS.between(studentCourse.getStartDate(), studentCourse.getEndDate()));
+
+    }
+
   }
 
 }
