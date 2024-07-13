@@ -136,13 +136,18 @@ class StudentServiceTest {
     // 実行
     StudentDetail result = sut.searchStudent(id);
 
-    // 検証 TODO:studentCoursesのすべての要素におけるstudentIdがidに一致しているかを検証する
+    // 検証
     verify(repository, times(1)).searchStudent(id);
     verify(repository, times(1)).searchStudentCourses(student.getId());
     assertNotNull(result);
     assertEquals(student, result.getStudent()); // result（StudentDetail）のStudent属性はstudentになっているか
     assertEquals(studentCourses, result.getStudentCourses());
     assertEquals(2, result.getStudentCourses().size());
+
+    for (StudentCourse studentCourse : result.getStudentCourses()) {
+      assertEquals(id, studentCourse.getStudentId());
+    }
+
   }
 
   @Test
