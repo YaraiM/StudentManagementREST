@@ -4,6 +4,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -173,6 +174,41 @@ class StudentControllerTest {
         .andExpect(jsonPath("$.studentCourses[1].courseName").value("Ruby"));
 
     verify(service, times(1)).registerStudent(any(StudentDetail.class));
+
+  }
+
+  @Test
+  void 受講生の更新_エンドポイントでサービスの処理が適切に呼び出されリクエスト情報に基づくstudentDetailが返ってくること()
+      throws Exception {
+    // 事前準備
+    int id = 666;
+    StudentDetail studentDetail = createTestStudentDetail(id);
+
+    studentDetail.getStudent().setFullname("田中昭三");
+    studentDetail.getStudent().setFurigana("たなかしょうぞう");
+    studentDetail.getStudent().setNickname("ショーゾー");
+    studentDetail.getStudent().setMail("shozo@example.com");
+    studentDetail.getStudent().setAddress("東京");
+    studentDetail.getStudent().setAge(56);
+    studentDetail.getStudent().setGender(男性);
+    studentDetail.getStudent().setRemark("更新のテストです。年齢を56に、deletedをtrueにしています。");
+    studentDetail.getStudent().setDeleted(true);
+
+    studentDetail.getStudentCourses().get(0).setCourseName("Java");
+    studentDetail.getStudentCourses().get(1).setCourseName("Ruby");
+
+    doNothing().when(service).updateStudent(any(StudentDetail.class));
+
+    String jsonRequest = objectMapper.writeValueAsString(studentDetail);
+
+    // 実行と検証
+    mockMvc.perform(MockMvcRequestBuilders.put("/students/update")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonRequest))
+        .andExpect(status().isOk())
+        .andExpect(content().string("更新処理が成功しました"));
+
+    verify(service, times(1)).updateStudent(any(StudentDetail.class));
 
   }
 
