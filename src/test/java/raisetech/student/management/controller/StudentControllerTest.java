@@ -22,7 +22,7 @@ class StudentControllerTest {
   private StudentService service;
 
   @Test
-  void 受講生詳細の一覧検索_エンドポイントでサービスの処理が適切に呼び出されていること()
+  void 受講生詳細の一覧検索_エンドポイントでサービスの処理が適切に呼び出されて処理成功のレスポンスが返ってくること()
       throws Exception {
     // 実行と検証
     mockMvc.perform(MockMvcRequestBuilders.get("/students"))
@@ -31,4 +31,14 @@ class StudentControllerTest {
     verify(service, times(1)).searchStudentList();
   }
 
+  @Test
+  void 過去の受講生詳細の一覧検索_エンドポイントでサービスの処理が適切に呼び出されて処理成功のレスポンスが返ってくること()
+      throws Exception {
+    // 実行と検証
+    mockMvc.perform(MockMvcRequestBuilders.get("/students/past"))
+        .andExpect(status().isOk());
+
+    verify(service, times(1)).searchPastStudentList();
+  }
+  
 }
