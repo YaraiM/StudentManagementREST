@@ -178,7 +178,7 @@ class StudentControllerTest {
   }
 
   @Test
-  void 受講生の更新_エンドポイントでサービスの処理が適切に呼び出されリクエスト情報に基づくstudentDetailが返ってくること()
+  void 受講生の更新_エンドポイントでサービスの処理が適切に呼び出され_更新処理が成功しました_というメッセージが返ってくること()
       throws Exception {
     // 事前準備
     int id = 666;
