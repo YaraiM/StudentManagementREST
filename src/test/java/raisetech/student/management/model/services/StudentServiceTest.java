@@ -1,6 +1,7 @@
 package raisetech.student.management.model.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -39,6 +40,31 @@ class StudentServiceTest {
 
   private StudentService sut;
 
+  /**
+   * テスト用に空の受講生詳細情報一覧を作成するメソッドです。コンバーターの代わりです。 deleted属性がtrueの受講生とfalseの受講生が一人ずつセットされています。
+   *
+   * @return　受講生詳細情報一覧
+   */
+  private static List<StudentDetail> createTestStudentDetails() {
+    Student activeStudent = new Student();
+    activeStudent.setDeleted(false);
+    StudentCourse activeStudentCourse1 = new StudentCourse();
+    StudentCourse activeStudentCourse2 = new StudentCourse();
+    List<StudentCourse> activeStudentCourses = new ArrayList<>(
+        List.of(activeStudentCourse1, activeStudentCourse2));
+    StudentDetail activeStudentDetail = new StudentDetail(activeStudent, activeStudentCourses);
+
+    Student deletedStudent = new Student();
+    deletedStudent.setDeleted(true);
+    StudentCourse deletedStudentCourse1 = new StudentCourse();
+    StudentCourse deletedStudentCourse2 = new StudentCourse();
+    List<StudentCourse> deletedStudentCourses = new ArrayList<>(
+        List.of(deletedStudentCourse1, deletedStudentCourse2));
+    StudentDetail deletedStudentDetail = new StudentDetail(deletedStudent, deletedStudentCourses);
+
+    return new ArrayList<>(List.of(activeStudentDetail, deletedStudentDetail));
+  }
+
   @BeforeEach
     //共通の事前準備を設定
   void before() {
@@ -46,71 +72,80 @@ class StudentServiceTest {
   }
 
   @Test
-  void 受講生詳細の一覧検索_リポジトリとコンバーターの処理を適切に呼び出せていること() {
+  void 受講生詳細の一覧検索_引数deletedがnullの場合にリポジトリとコンバーターの処理を適切に呼び出し全件検索できること() {
     // 事前準備
+    Boolean deleted = null;
+
     List<Student> students = new ArrayList<>();
     List<StudentCourse> studentCoursesList = new ArrayList<>();
+    List<StudentDetail> studentDetails = createTestStudentDetails();
+
     when(repository.searchStudents()).thenReturn(students);
     when(repository.searchStudentCoursesList()).thenReturn(studentCoursesList);
+    when(converter.convertStudentDetails(students, studentCoursesList)).thenReturn(studentDetails);
 
     // 実行
-    sut.searchStudentList();
+    List<StudentDetail> actualStudentDetails = sut.searchStudentList(deleted);
 
     // 検証
     verify(repository, times(1)).searchStudents();
     verify(repository, times(1)).searchStudentCoursesList();
     verify(converter, times(1)).convertStudentDetails(students, studentCoursesList);
 
+    assertEquals(studentDetails, actualStudentDetails);
+    assertEquals(2, actualStudentDetails.size());
+
   }
 
   @Test
-  void 過去の受講生詳細の一覧検索_リポジトリとコンバーターの処理を適切に呼び出せていること() {
+  void 受講生詳細の一覧検索_引数deletedがfalseの場合にリポジトリとコンバーターの処理を適切に呼び出し現在の受講生詳細の一覧を検索できること() {
     // 事前準備
+    Boolean deleted = false;
+
     List<Student> students = new ArrayList<>();
     List<StudentCourse> studentCoursesList = new ArrayList<>();
+    List<StudentDetail> studentDetails = createTestStudentDetails();
+
     when(repository.searchStudents()).thenReturn(students);
     when(repository.searchStudentCoursesList()).thenReturn(studentCoursesList);
+    when(converter.convertStudentDetails(students, studentCoursesList)).thenReturn(studentDetails);
 
     // 実行
-    sut.searchPastStudentList();
+    List<StudentDetail> actualStudentDetails = sut.searchStudentList(deleted);
 
     // 検証
     verify(repository, times(1)).searchStudents();
     verify(repository, times(1)).searchStudentCoursesList();
     verify(converter, times(1)).convertStudentDetails(students, studentCoursesList);
 
+    assertEquals(1, actualStudentDetails.size());
+    assertFalse(actualStudentDetails.get(0).getStudent().isDeleted());
+
   }
 
   @Test
-  void 過去の受講生詳細の一覧検索_deleted属性がtrueの受講生のみ返されていること() {
-    // 事前準備：現在の受講生と過去の受講生の定義
-    Student activeStudent = new Student();
-    activeStudent.setDeleted(false);
-    Student deletedStudent = new Student();
-    deletedStudent.setDeleted(true);
+  void 受講生詳細の一覧検索_引数deletedがtrueの場合にリポジトリとコンバーターの処理を適切に呼び出し過去の受講生詳細の一覧を検索できること() {
+    // 事前準備
+    Boolean deleted = true;
 
-    // 事前準備：現在の受講生と過去の受講生が一人ずつ含まれる受講生一覧および空の受講生コース一覧を定義し、返り値を指定
-    List<Student> students = new ArrayList<>(List.of(activeStudent, deletedStudent));
+    List<Student> students = new ArrayList<>();
     List<StudentCourse> studentCoursesList = new ArrayList<>();
+    List<StudentDetail> studentDetails = createTestStudentDetails();
+
     when(repository.searchStudents()).thenReturn(students);
     when(repository.searchStudentCoursesList()).thenReturn(studentCoursesList);
+    when(converter.convertStudentDetails(students, studentCoursesList)).thenReturn(studentDetails);
 
-    // 事前準備：現在の受講生詳細情報と過去の受講生詳細を定義
-    StudentDetail activeStudentDetail = new StudentDetail();
-    activeStudentDetail.setStudent(activeStudent);
-    StudentDetail deletedStudentDetail = new StudentDetail();
-    deletedStudentDetail.setStudent(deletedStudent);
+    // 実行
+    List<StudentDetail> actualStudentDetails = sut.searchStudentList(deleted);
 
-    // 事前準備：受講生情報一覧と受講生コース情報一覧をコンバーターに渡したときの返り値を定義
-    when(converter.convertStudentDetails(students, studentCoursesList)).thenReturn(
-        List.of(activeStudentDetail, deletedStudentDetail));
+    // 検証
+    verify(repository, times(1)).searchStudents();
+    verify(repository, times(1)).searchStudentCoursesList();
+    verify(converter, times(1)).convertStudentDetails(students, studentCoursesList);
 
-    // 実行：StudentServiceの実装に従い実行されるが、入力されるデータは事前準備で定義した内容が使用される。
-    List<StudentDetail> result = sut.searchPastStudentList();
-
-    // 検証：resultに、deleted属性がtrueのactiveStudentDetailの１件のみが含まれているかを検証
-    assertEquals(1, result.size());
-    assertTrue(result.get(0).getStudent().isDeleted());
+    assertEquals(1, actualStudentDetails.size());
+    assertTrue(actualStudentDetails.get(0).getStudent().isDeleted());
 
   }
 
