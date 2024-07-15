@@ -27,26 +27,31 @@ public class StudentService {
 
   /**
    * 受講生一覧検索です。 受講生の一覧と受講生のコース一覧をconverterで受講生詳細情報一覧に変換します。
+   * 指定されたリクエストパラメータ（deleted）の値に応じてフィルタリングを行います。
    *
-   * @return 受講生一覧（全件）
+   * @return 受講生詳細情報一覧
    */
-  public List<StudentDetail> searchStudentList() {
+  public List<StudentDetail> searchStudentList(
+      Boolean deleted) {
     List<Student> students = repository.searchStudents();
     List<StudentCourse> studentsCourses = repository.searchStudentCoursesList();
-    return converter.convertStudentDetails(students, studentsCourses);
+    List<StudentDetail> studentDetails = converter.convertStudentDetails(students, studentsCourses);
+
+    return studentDetails.stream()
+        .filter(studentDetail -> filterByDeleted(studentDetail, deleted))
+        .toList();
+
   }
 
   /**
-   * 過去の受講生一覧検索です。 受講生のうち、deleted属性がtrueの受講生を検索します。
+   * ユーザーからリクエストされたdeletedの値に応じてフィルタリングするメソッドです。リクエストされたdeletedがnullなら無条件でtrueを返し、すべての受講生がフィルタを通過します。deletedがtrueまたはfalseなら、指定されたdeletedと等しい受講生のみがフィルターを通過します。
    *
-   * @return 過去の受講生一覧
+   * @param studentDetail 受講生詳細情報
+   * @param deleted       削除フラグ
+   * @return 真偽値
    */
-  public List<StudentDetail> searchPastStudentList() {
-    List<Student> students = repository.searchStudents();
-    List<StudentCourse> studentsCourses = repository.searchStudentCoursesList();
-    return converter.convertStudentDetails(students, studentsCourses).stream()
-        .filter(studentDetail -> studentDetail.getStudent().isDeleted())
-        .toList();
+  private boolean filterByDeleted(StudentDetail studentDetail, Boolean deleted) {
+    return deleted == null || studentDetail.getStudent().isDeleted() == deleted;
   }
 
   /**
