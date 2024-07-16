@@ -38,20 +38,10 @@ public class StudentService {
     List<StudentDetail> studentDetails = converter.convertStudentDetails(students, studentsCourses);
 
     return studentDetails.stream()
-        .filter(studentDetail -> filterByDeleted(studentDetail, deleted))
+        .filter(studentDetail ->
+            deleted == null || studentDetail.getStudent().isDeleted() == deleted)
         .toList();
 
-  }
-
-  /**
-   * ユーザーからリクエストされたdeletedの値に応じてフィルタリングするメソッドです。リクエストされたdeletedがnullなら無条件でtrueを返し、すべての受講生がフィルタを通過します。deletedがtrueまたはfalseなら、指定されたdeletedと等しい受講生のみがフィルターを通過します。
-   *
-   * @param studentDetail 受講生詳細情報
-   * @param deleted       削除フラグ
-   * @return 真偽値
-   */
-  private boolean filterByDeleted(StudentDetail studentDetail, Boolean deleted) {
-    return deleted == null || studentDetail.getStudent().isDeleted() == deleted;
   }
 
   /**
