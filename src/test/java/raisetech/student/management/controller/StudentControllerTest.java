@@ -4,7 +4,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -128,87 +127,82 @@ class StudentControllerTest {
   }
 
   @Test
-  void 受講生の新規登録_エンドポイントでサービスの処理が適切に呼び出されリクエスト情報に基づくstudentDetailが返ってくること()
+  void 受講生の新規登録_エンドポイントでサービスの処理が適切に呼び出され空で返ってくること()
       throws Exception {
-    // 事前準備
-    int id = 666;
-    StudentDetail studentDetail = createTestStudentDetail(id);
-
-    studentDetail.getStudent().setFullname("田中昭三");
-    studentDetail.getStudent().setFurigana("たなかしょうぞう");
-    studentDetail.getStudent().setNickname("ショーゾー");
-    studentDetail.getStudent().setMail("shozo@example.com");
-    studentDetail.getStudent().setAddress("東京");
-    studentDetail.getStudent().setAge(55);
-    studentDetail.getStudent().setGender(男性);
-    studentDetail.getStudent().setRemark("新規登録のテストです");
-    studentDetail.getStudent().setDeleted(false);
-
-    studentDetail.getStudentCourses().get(0).setCourseName("Java");
-    studentDetail.getStudentCourses().get(1).setCourseName("Ruby");
-
-    when(service.registerStudent(any(StudentDetail.class))).thenReturn(studentDetail);
-
-    String jsonRequest = objectMapper.writeValueAsString(studentDetail);
+    // リクエストデータを実際のリクエストデータと同様にJSONで入力し、入力チェックの検証も兼ねている。
+    // 本来であれば返りは登録されたデータが入るが、モック化すると意味がないため、レスポンスは作らない。
+    // 実際のテストコードは、プロダクトコードと並行して作る（Postmanの動作確認前）ので、JSON形式の入力チェックをやっておく。
 
     // 実行と検証
-    mockMvc.perform(MockMvcRequestBuilders.post("/students/new")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(jsonRequest))
-        .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$.student.id").value(id))
-        .andExpect(jsonPath("$.student.fullname").value("田中昭三"))
-        .andExpect(jsonPath("$.student.furigana").value("たなかしょうぞう"))
-        .andExpect(jsonPath("$.student.nickname").value("ショーゾー"))
-        .andExpect(jsonPath("$.student.mail").value("shozo@example.com"))
-        .andExpect(jsonPath("$.student.address").value("東京"))
-        .andExpect(jsonPath("$.student.age").value(55))
-        .andExpect(jsonPath("$.student.gender").value("男性"))
-        .andExpect(jsonPath("$.student.remark").value("新規登録のテストです"))
-        .andExpect(jsonPath("$.student.deleted").value(false))
-        .andExpect(jsonPath("$.studentCourses", hasSize(2)))
-        .andExpect(jsonPath("$.studentCourses[0].studentId").value(id))
-        .andExpect(jsonPath("$.studentCourses[0].courseName").value("Java"))
-        .andExpect(jsonPath("$.studentCourses[1].studentId").value(id))
-        .andExpect(jsonPath("$.studentCourses[1].courseName").value("Ruby"));
+    mockMvc.perform(
+            MockMvcRequestBuilders.post("/students/new").contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                        {
+                            "student": {
+                                "fullname": "田中昭三",
+                                "furigana": "たなかしょうぞう",
+                                "nickname": "ショーゾー",
+                                "mail": "shozo@example.com",
+                                "address": "東京",
+                                "age": 55,
+                                "gender": "男性",
+                                "remark": "新規登録のテストです"
+                            },
+                            "studentCourses": [
+                                {
+                                    "courseName": "Java"
+                                },
+                                {
+                                    "courseName": "Ruby"
+                                }
+                            ]
+                        }
+                        """
+                ))
+        .andExpect(status().isOk());
 
-    verify(service, times(1)).registerStudent(any(StudentDetail.class));
-
+    verify(service, times(1)).registerStudent(any());
   }
 
   @Test
   void 受講生の更新_エンドポイントでサービスの処理が適切に呼び出され_更新処理が成功しました_というメッセージが返ってくること()
       throws Exception {
-    // 事前準備
-    int id = 666;
-    StudentDetail studentDetail = createTestStudentDetail(id);
-
-    studentDetail.getStudent().setFullname("田中昭三");
-    studentDetail.getStudent().setFurigana("たなかしょうぞう");
-    studentDetail.getStudent().setNickname("ショーゾー");
-    studentDetail.getStudent().setMail("shozo@example.com");
-    studentDetail.getStudent().setAddress("東京");
-    studentDetail.getStudent().setAge(56);
-    studentDetail.getStudent().setGender(男性);
-    studentDetail.getStudent().setRemark("更新のテストです。年齢を56に、deletedをtrueにしています。");
-    studentDetail.getStudent().setDeleted(true);
-
-    studentDetail.getStudentCourses().get(0).setCourseName("Java");
-    studentDetail.getStudentCourses().get(1).setCourseName("Ruby");
-
-    doNothing().when(service).updateStudent(any(StudentDetail.class));
-
-    String jsonRequest = objectMapper.writeValueAsString(studentDetail);
 
     // 実行と検証
     mockMvc.perform(MockMvcRequestBuilders.put("/students/update")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(jsonRequest))
+            .content(
+                """
+                        {
+                            "student": {
+                                "fullname": "田中昭三",
+                                "furigana": "たなかしょうぞう",
+                                "nickname": "ショーゾー",
+                                "mail": "shozo@example.com",
+                                "address": "東京",
+                                "age": 56,
+                                "gender": "男性",
+                                "remark": "更新のテストです。年齢を56に、deletedをtrueにしています。",
+                                "deleted": true
+                            },
+                            "studentCourses": [
+                                {
+                                    "id": 1,
+                                    "courseName": "Java"
+                                },
+                                {
+                                    "id":2,
+                                    "courseName": "Ruby"
+                                }
+                            ]
+                        }
+                    """
+            ))
         .andExpect(status().isOk())
         .andExpect(content().string("更新処理が成功しました"));
 
-    verify(service, times(1)).updateStudent(any(StudentDetail.class));
+    verify(service, times(1)).updateStudent(any());
 
   }
 
