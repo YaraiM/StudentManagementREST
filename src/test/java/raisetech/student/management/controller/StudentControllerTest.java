@@ -48,7 +48,7 @@ class StudentControllerTest {
   private Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
   /**
-   * テスト用にStudentDetailオブジェクトを作成するメソッドです。受講生IDのみ入力したインスタンスが生成されます。
+   * テスト用にStudentDetailオブジェクトを作成するメソッドです。受講生IDのみセットされたインスタンスが生成されます。
    *
    * @param id 受講生ID
    * @return 受講生の詳細情報
@@ -63,28 +63,33 @@ class StudentControllerTest {
     studentCourse2.setStudentId(student.getId());
     List<StudentCourse> studentCourses = new ArrayList<>(List.of(studentCourse1, studentCourse2));
 
-    StudentDetail studentDetail = new StudentDetail(student, studentCourses);
-    return studentDetail;
+    return new StudentDetail(student, studentCourses);
   }
 
   @Test
-  void 受講生詳細の一覧検索_エンドポイントでサービスの処理が適切に呼び出されて処理成功のレスポンスが返ってくること()
+  void 受講生詳細の一覧検索_deleteがnullに場合にエンドポイントでサービスの処理が適切に呼び出されて処理成功のレスポンスが返ってくること()
       throws Exception {
+    // 事前準備
+    Boolean deleted = null;
+
     // 実行と検証
     mockMvc.perform(MockMvcRequestBuilders.get("/students"))
         .andExpect(status().isOk());
 
-    verify(service, times(1)).searchStudentList();
+    verify(service, times(1)).searchStudentList(deleted);
   }
 
   @Test
-  void 過去の受講生詳細の一覧検索_エンドポイントでサービスの処理が適切に呼び出されて処理成功のレスポンスが返ってくること()
+  void 受講生詳細の一覧検索_deleteが指定されている場合にエンドポイントでサービスの処理が適切に呼び出されて処理成功のレスポンスが返ってくること()
       throws Exception {
+    // 事前準備
+    Boolean deleted = false;
+
     // 実行と検証
-    mockMvc.perform(MockMvcRequestBuilders.get("/students/past"))
+    mockMvc.perform(MockMvcRequestBuilders.get("/students"))
         .andExpect(status().isOk());
 
-    verify(service, times(1)).searchPastStudentList();
+    verify(service, times(1)).searchStudentList(deleted);
   }
 
   @Test

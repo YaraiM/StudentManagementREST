@@ -27,26 +27,21 @@ public class StudentService {
 
   /**
    * 受講生一覧検索です。 受講生の一覧と受講生のコース一覧をconverterで受講生詳細情報一覧に変換します。
+   * 指定されたリクエストパラメータ（deleted）の値に応じてフィルタリングを行います。
    *
-   * @return 受講生一覧（全件）
+   * @return 受講生詳細情報一覧
    */
-  public List<StudentDetail> searchStudentList() {
+  public List<StudentDetail> searchStudentList(
+      Boolean deleted) {
     List<Student> students = repository.searchStudents();
     List<StudentCourse> studentsCourses = repository.searchStudentCoursesList();
-    return converter.convertStudentDetails(students, studentsCourses);
-  }
+    List<StudentDetail> studentDetails = converter.convertStudentDetails(students, studentsCourses);
 
-  /**
-   * 過去の受講生一覧検索です。 受講生のうち、deleted属性がtrueの受講生を検索します。
-   *
-   * @return 過去の受講生一覧
-   */
-  public List<StudentDetail> searchPastStudentList() {
-    List<Student> students = repository.searchStudents();
-    List<StudentCourse> studentsCourses = repository.searchStudentCoursesList();
-    return converter.convertStudentDetails(students, studentsCourses).stream()
-        .filter(studentDetail -> studentDetail.getStudent().isDeleted())
+    return studentDetails.stream()
+        .filter(studentDetail ->
+            deleted == null || studentDetail.getStudent().isDeleted() == deleted)
         .toList();
+
   }
 
   /**

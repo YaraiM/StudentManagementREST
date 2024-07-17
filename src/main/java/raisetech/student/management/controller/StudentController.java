@@ -37,11 +37,12 @@ public class StudentController {
   }
 
   /**
-   * 受講生一覧検索です。 全件検索を行うので、条件指定は行いません。
+   * 受講生一覧検索です。 リクエストパラメータを指定しなければ全件検索を行います。
+   * リクエストパラメータでdeletedの値を指定することにより、現在の受講生または過去の受講生に絞って検索できます。
    *
-   * @return 受講生一覧（全件）
+   * @return 受講生詳細情報一覧
    */
-  @Operation(summary = "受講生一覧検索", description = "受講生の一覧を検索します。")
+  @Operation(summary = "受講生一覧検索", description = "条件に合致する受講生の一覧を検索します。")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "処理が成功した場合のレスポンス",
           content = @Content(mediaType = "application/json",
@@ -50,27 +51,11 @@ public class StudentController {
       )
   })
   @GetMapping("/students")
-  public List<StudentDetail> getStudentList() {
-    return service.searchStudentList();
-  }
+  public List<StudentDetail> getStudentList(
+      @Parameter(description = "受講生の削除フラグ") @RequestParam(required = false) Boolean deleted) {
 
-  /**
-   * 過去の受講生一覧検索です。
-   *
-   * @return 過去の受講生一覧（全件）
-   */
-  @Operation(summary = "過去の受講生一覧検索", description = "過去の受講生の一覧を検索します。")
-  @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "処理が成功した場合のレスポンス",
-          content = @Content(mediaType = "application/json",
-              array = @ArraySchema(schema = @Schema(implementation = StudentDetail.class))
-          )
-      )
-  })
-  @GetMapping("/students/past")
+    return service.searchStudentList(deleted);
 
-  public List<StudentDetail> getPastStudentList() {
-    return service.searchPastStudentList();
   }
 
   /**
