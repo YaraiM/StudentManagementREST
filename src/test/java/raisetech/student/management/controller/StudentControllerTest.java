@@ -66,16 +66,14 @@ class StudentControllerTest {
   }
 
   @Test
-  void 受講生詳細の一覧検索_deleteがnullに場合にエンドポイントでサービスの処理が適切に呼び出されて処理成功のレスポンスが返ってくること()
+  void 受講生詳細の一覧検索_deletedをリクエストパラメータに指定しない場合にエンドポイントでサービスの処理が適切に呼び出されて処理成功のレスポンスが返ってくること()
       throws Exception {
-    // 事前準備
-    Boolean deleted = null;
-
     // 実行と検証
-    mockMvc.perform(MockMvcRequestBuilders.get("/students"))
+    mockMvc.perform(
+            MockMvcRequestBuilders.get("/students"))
         .andExpect(status().isOk());
 
-    verify(service, times(1)).searchStudentList(deleted);
+    verify(service, times(1)).searchStudentList(null);
   }
 
   @Test
@@ -85,7 +83,8 @@ class StudentControllerTest {
     Boolean deleted = false;
 
     // 実行と検証
-    mockMvc.perform(MockMvcRequestBuilders.get("/students"))
+    mockMvc.perform(
+            MockMvcRequestBuilders.get("/students").param("deleted", String.valueOf(deleted)))
         .andExpect(status().isOk());
 
     verify(service, times(1)).searchStudentList(deleted);
