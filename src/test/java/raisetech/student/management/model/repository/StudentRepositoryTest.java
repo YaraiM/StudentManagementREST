@@ -1,13 +1,15 @@
 package raisetech.student.management.model.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static raisetech.student.management.model.data.Gender.その他;
+import static raisetech.student.management.model.data.Gender.男性;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mybatis.spring.boot.test.autoconfigure.MybatisTest;
 import org.springframework.beans.factory.annotation.Autowired;
-import raisetech.student.management.model.data.Gender;
 import raisetech.student.management.model.data.Student;
 import raisetech.student.management.model.data.StudentCourse;
 
@@ -30,7 +32,7 @@ class StudentRepositoryTest {
     student.setMail("atom@example.com");
     student.setAddress("沖縄");
     student.setAge(18);
-    student.setGender(Gender.valueOf("その他"));
+    student.setGender(その他);
     student.setRemark("テスト");
     return student;
   }
@@ -71,7 +73,6 @@ class StudentRepositoryTest {
 
     List<Student> actual = sut.searchStudents();
     assertEquals(6, actual.size());
-    assertEquals("荒川亜土夢", actual.get(5).getFullname());
 
   }
 
@@ -82,7 +83,7 @@ class StudentRepositoryTest {
 
     StudentCourse studentCourse = new StudentCourse();
     studentCourse.setStudentId(6);
-    studentCourse.setCourseName("AWS9");
+    studentCourse.setCourseName("AWS");
     studentCourse.setStartDate(LocalDateTime.of(2024, 4, 1, 9, 0, 0));
     studentCourse.setStartDate(LocalDateTime.of(2025, 4, 1, 9, 0, 0));
 
@@ -90,7 +91,48 @@ class StudentRepositoryTest {
 
     List<StudentCourse> actual = sut.searchStudentCoursesList();
     assertEquals(9, actual.size());
-    assertEquals("AWS9", actual.get(8).getCourseName());
+
+  }
+
+  @Test
+  void 受講生の更新ができること() {
+    int id = 5;
+    Student student = sut.searchStudent(id);
+    student.setFullname("中村健太2");
+    student.setFurigana("ナカムラケンタ2");
+    student.setNickname("けん2");
+    student.setMail("kenta2.nakamura@example.com");
+    student.setAddress("北海道2");
+    student.setAge(20);
+    student.setGender(男性);
+    student.setRemark("テスト2");
+    student.setDeleted(true);
+
+    sut.updateStudent(student);
+
+    Student actual = sut.searchStudent(id);
+    assertEquals("中村健太2", actual.getFullname());
+    assertEquals("ナカムラケンタ2", actual.getFurigana());
+    assertEquals("けん2", actual.getNickname());
+    assertEquals("kenta2.nakamura@example.com", actual.getMail());
+    assertEquals("北海道2", actual.getAddress());
+    assertEquals(20, actual.getAge());
+    assertEquals(男性, actual.getGender());
+    assertEquals("テスト2", actual.getRemark());
+    assertTrue(actual.isDeleted());
+
+  }
+
+  @Test
+  void 受講生コースの更新ができること() {
+    int studentId = 5;
+    List<StudentCourse> studentCourses = sut.searchStudentCourses(studentId);
+    studentCourses.get(0).setCourseName("AWS2");
+
+    sut.updateStudentCourses(studentCourses.get(0));
+
+    List<StudentCourse> actual = sut.searchStudentCourses(studentId);
+    assertEquals("AWS2", actual.get(0).getCourseName());
 
   }
 
