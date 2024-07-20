@@ -82,7 +82,7 @@ class StudentRepositoryTest {
     sut.registerStudent(student); // まずidが6の受講生をDB登録し、外部キー制約違反が発生しないようにする
 
     StudentCourse studentCourse = new StudentCourse();
-    studentCourse.setStudentId(6);
+    studentCourse.setStudentId(student.getId());
     studentCourse.setCourseName("AWS");
     studentCourse.setStartDate(LocalDateTime.of(2024, 4, 1, 9, 0, 0));
     studentCourse.setStartDate(LocalDateTime.of(2025, 4, 1, 9, 0, 0));
