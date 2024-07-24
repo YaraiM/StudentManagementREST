@@ -4,12 +4,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static raisetech.student.management.model.data.Gender.その他;
 import static raisetech.student.management.model.data.Gender.男性;
+import static raisetech.student.management.model.data.Status.仮申込;
+import static raisetech.student.management.model.data.Status.本申込;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mybatis.spring.boot.test.autoconfigure.MybatisTest;
 import org.springframework.beans.factory.annotation.Autowired;
+import raisetech.student.management.model.data.CourseStatus;
 import raisetech.student.management.model.data.Student;
 import raisetech.student.management.model.data.StudentCourse;
 
@@ -36,6 +39,22 @@ class StudentRepositoryTest {
     student.setRemark("テスト");
     return student;
   }
+
+  /**
+   * テスト用に受講生のオブジェクトを生成するメソッドです。
+   *
+   * @param student 受講生
+   * @return 受講生コース
+   */
+  private static StudentCourse createStudentCourse(Student student) {
+    StudentCourse studentCourse = new StudentCourse();
+    studentCourse.setStudentId(student.getId());
+    studentCourse.setCourseName("AWS");
+    studentCourse.setStartDate(LocalDateTime.of(2024, 4, 1, 9, 0, 0));
+    studentCourse.setStartDate(LocalDateTime.of(2025, 4, 1, 9, 0, 0));
+    return studentCourse;
+  }
+
 
   @Test
   void 受講生の全件検索が行えること() {
@@ -66,9 +85,22 @@ class StudentRepositoryTest {
   }
 
   @Test
+  void コース申込状況の全件検索が行えること() {
+    List<CourseStatus> actual = sut.searchCourseStatusList();
+    assertEquals(8, actual.size());
+  }
+
+  @Test
+  void 指定した受講生コースIDに紐づくコース申込状況の検索が行えること() {
+    int courseId = 5;
+    CourseStatus actual = sut.searchCourseStatus(courseId);
+    assertEquals(仮申込, actual.getStatus());
+  }
+
+
+  @Test
   void 受講生の新規登録ができること() {
     Student student = createStudent();
-
     sut.registerStudent(student);
 
     List<Student> actual = sut.searchStudents();
@@ -79,17 +111,31 @@ class StudentRepositoryTest {
   @Test
   void 受講生コースの新規登録ができること() {
     Student student = createStudent();
-    sut.registerStudent(student); // まずidが6の受講生をDB登録し、外部キー制約違反が発生しないようにする
+    sut.registerStudent(student); // まず新たなidの受講生をDB登録し、外部キー制約違反が発生しないようにする
 
-    StudentCourse studentCourse = new StudentCourse();
-    studentCourse.setStudentId(student.getId());
-    studentCourse.setCourseName("AWS");
-    studentCourse.setStartDate(LocalDateTime.of(2024, 4, 1, 9, 0, 0));
-    studentCourse.setStartDate(LocalDateTime.of(2025, 4, 1, 9, 0, 0));
-
+    StudentCourse studentCourse = createStudentCourse(student);
     sut.registerStudentCourses(studentCourse);
 
     List<StudentCourse> actual = sut.searchStudentCoursesList();
+    assertEquals(9, actual.size());
+
+  }
+
+  @Test
+  void コース申込状況の新規登録ができること() {
+    Student student = createStudent();
+    sut.registerStudent(student); // まず新たなidの受講生をDB登録し、studentCourseの外部キー制約違反が発生しないようにする
+
+    StudentCourse studentCourse = createStudentCourse(student);
+    sut.registerStudentCourses(
+        studentCourse); // 次に新たなidの受講生コースをDB登録し、courseStatusの外部キー制約違反が発生しないようにする
+
+    CourseStatus courseStatus = new CourseStatus();
+    courseStatus.setCourseId(studentCourse.getId());
+    courseStatus.setStatus(仮申込);
+    sut.registerCourseStatus(courseStatus);
+
+    List<CourseStatus> actual = sut.searchCourseStatusList();
     assertEquals(9, actual.size());
 
   }
@@ -133,6 +179,19 @@ class StudentRepositoryTest {
 
     List<StudentCourse> actual = sut.searchStudentCourses(studentId);
     assertEquals("AWS2", actual.get(0).getCourseName());
+
+  }
+
+  @Test
+  void コース申込状況の更新ができること() {
+    int courseId = 1;
+    CourseStatus courseStatus = sut.searchCourseStatus(courseId);
+    courseStatus.setStatus(本申込);
+
+    sut.updateCourseStatus(courseStatus);
+
+    CourseStatus actual = sut.searchCourseStatus(courseId);
+    assertEquals(本申込, actual.getStatus());
 
   }
 
