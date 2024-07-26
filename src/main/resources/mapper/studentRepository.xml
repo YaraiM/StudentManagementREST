@@ -27,13 +27,13 @@
   </select>
 
   <!--  受講生コースの申込状況の全件検索  -->
-  <select id="searchCourseStatusList"
+  <select id="searchCourseStatusesList"
     resultType="raisetech.student.management.model.data.CourseStatus">
     SELECT * FROM course_status
   </select>
 
   <!--  受講生コースの申込状況の検索  -->
-  <select id="searchCourseStatus"
+  <select id="searchCourseStatuses"
     resultType="raisetech.student.management.model.data.CourseStatus">
     SELECT * FROM course_status WHERE course_id = #{courseId}
   </select>
@@ -52,7 +52,7 @@
   </insert>
 
   <!--  受講生コースの申込状況の新規登録  -->
-  <insert id="registerCourseStatus" useGeneratedKeys="true" keyProperty="id">
+  <insert id="registerCourseStatuses" useGeneratedKeys="true" keyProperty="id">
     INSERT INTO course_status(course_id, status) values(#{courseId}, #{status})
   </insert>
 
@@ -69,7 +69,7 @@
   </update>
 
   <!--  受講生コースの申込状況の更新  -->
-  <update id="updateCourseStatus">
+  <update id="updateCourseStatuses">
     UPDATE course_status SET status=#{status} WHERE course_id=#{courseId}
   </update>
 

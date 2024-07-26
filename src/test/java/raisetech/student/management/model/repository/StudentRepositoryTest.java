@@ -86,14 +86,14 @@ class StudentRepositoryTest {
 
   @Test
   void コース申込状況の全件検索が行えること() {
-    List<CourseStatus> actual = sut.searchCourseStatusList();
+    List<CourseStatus> actual = sut.searchCourseStatusesList();
     assertEquals(8, actual.size());
   }
 
   @Test
   void 指定した受講生コースIDに紐づくコース申込状況の検索が行えること() {
     int courseId = 5;
-    CourseStatus actual = sut.searchCourseStatus(courseId);
+    CourseStatus actual = sut.searchCourseStatuses(courseId);
     assertEquals(仮申込, actual.getStatus());
   }
 
@@ -133,9 +133,9 @@ class StudentRepositoryTest {
     CourseStatus courseStatus = new CourseStatus();
     courseStatus.setCourseId(studentCourse.getId());
     courseStatus.setStatus(仮申込);
-    sut.registerCourseStatus(courseStatus);
+    sut.registerCourseStatuses(courseStatus);
 
-    List<CourseStatus> actual = sut.searchCourseStatusList();
+    List<CourseStatus> actual = sut.searchCourseStatusesList();
     assertEquals(9, actual.size());
 
   }
@@ -185,12 +185,12 @@ class StudentRepositoryTest {
   @Test
   void コース申込状況の更新ができること() {
     int courseId = 1;
-    CourseStatus courseStatus = sut.searchCourseStatus(courseId);
+    CourseStatus courseStatus = sut.searchCourseStatuses(courseId);
     courseStatus.setStatus(本申込);
 
-    sut.updateCourseStatus(courseStatus);
+    sut.updateCourseStatuses(courseStatus);
 
-    CourseStatus actual = sut.searchCourseStatus(courseId);
+    CourseStatus actual = sut.searchCourseStatuses(courseId);
     assertEquals(本申込, actual.getStatus());
 
   }

@@ -47,7 +47,7 @@ public interface StudentRepository {
    *
    * @return コース申込状況（全件）
    */
-  List<CourseStatus> searchCourseStatusList();
+  List<CourseStatus> searchCourseStatusesList();
 
   /**
    * 受講生コースIDに紐づくコース申込状況を検索します。
@@ -55,7 +55,7 @@ public interface StudentRepository {
    * @param courseId 受講生コースID
    * @return IDに紐づくコース申込状況
    */
-  CourseStatus searchCourseStatus(int courseId);
+  CourseStatus searchCourseStatuses(int courseId);
 
   /**
    * 受講生の新規登録です。 新規の受講生の情報を受講生テーブルに追加します。
@@ -74,7 +74,7 @@ public interface StudentRepository {
   /**
    * @param courseStatus 新規の受講生コースに登録する申込状況
    */
-  void registerCourseStatus(CourseStatus courseStatus);
+  void registerCourseStatuses(CourseStatus courseStatus);
 
   /**
    * 受講生情報の更新です。受講生IDを参照して、受講生テーブルで該当する受講生情報を更新します。
@@ -95,6 +95,6 @@ public interface StudentRepository {
    *
    * @param courseStatus 　受講生コースの申込状況の更新情報
    */
-  void updateCourseStatus(CourseStatus courseStatus);
+  void updateCourseStatuses(CourseStatus courseStatus);
 
 }

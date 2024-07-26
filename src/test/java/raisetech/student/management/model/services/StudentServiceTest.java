@@ -22,6 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import raisetech.student.management.controller.converter.StudentConverter;
+import raisetech.student.management.model.data.CourseStatus;
 import raisetech.student.management.model.data.Student;
 import raisetech.student.management.model.data.StudentCourse;
 import raisetech.student.management.model.domain.StudentDetail;
@@ -52,7 +53,13 @@ class StudentServiceTest {
     StudentCourse activeStudentCourse2 = new StudentCourse();
     List<StudentCourse> activeStudentCourses = new ArrayList<>(
         List.of(activeStudentCourse1, activeStudentCourse2));
-    StudentDetail activeStudentDetail = new StudentDetail(activeStudent, activeStudentCourses);
+    CourseStatus activeStudentCourseStatus1 = new CourseStatus();
+    CourseStatus activeStudentCourseStatus2 = new CourseStatus();
+    List<CourseStatus> activeStudentCourseStatuses = new ArrayList<>(
+        List.of(activeStudentCourseStatus1, activeStudentCourseStatus2));
+
+    StudentDetail activeStudentDetail = new StudentDetail(activeStudent, activeStudentCourses,
+        activeStudentCourseStatuses);
 
     Student deletedStudent = new Student();
     deletedStudent.setDeleted(true);
@@ -60,13 +67,18 @@ class StudentServiceTest {
     StudentCourse deletedStudentCourse2 = new StudentCourse();
     List<StudentCourse> deletedStudentCourses = new ArrayList<>(
         List.of(deletedStudentCourse1, deletedStudentCourse2));
-    StudentDetail deletedStudentDetail = new StudentDetail(deletedStudent, deletedStudentCourses);
+    CourseStatus deletedStudentCourseStatus1 = new CourseStatus();
+    CourseStatus deletedStudentCourseStatus2 = new CourseStatus();
+    List<CourseStatus> deletedStudentCourseStatuses = new ArrayList<>(
+        List.of(deletedStudentCourseStatus1, deletedStudentCourseStatus2));
+
+    StudentDetail deletedStudentDetail = new StudentDetail(deletedStudent, deletedStudentCourses,
+        deletedStudentCourseStatuses);
 
     return new ArrayList<>(List.of(activeStudentDetail, deletedStudentDetail));
   }
 
   @BeforeEach
-    //共通の事前準備を設定
   void before() {
     sut = new StudentService(repository, converter);
   }
@@ -78,11 +90,14 @@ class StudentServiceTest {
 
     List<Student> students = new ArrayList<>();
     List<StudentCourse> studentCoursesList = new ArrayList<>();
+    List<CourseStatus> courseStatusesList = new ArrayList<>();
     List<StudentDetail> studentDetails = createTestStudentDetails();
 
     when(repository.searchStudents()).thenReturn(students);
     when(repository.searchStudentCoursesList()).thenReturn(studentCoursesList);
-    when(converter.convertStudentDetails(students, studentCoursesList)).thenReturn(studentDetails);
+    when(repository.searchCourseStatusesList()).thenReturn(courseStatusesList);
+    when(converter.convertStudentDetails(students, studentCoursesList,
+        courseStatusesList)).thenReturn(studentDetails);
 
     // 実行
     List<StudentDetail> actualStudentDetails = sut.searchStudentList(deleted);
@@ -90,7 +105,9 @@ class StudentServiceTest {
     // 検証
     verify(repository, times(1)).searchStudents();
     verify(repository, times(1)).searchStudentCoursesList();
-    verify(converter, times(1)).convertStudentDetails(students, studentCoursesList);
+    verify(repository, times(1)).searchCourseStatusesList();
+    verify(converter, times(1)).convertStudentDetails(students, studentCoursesList,
+        courseStatusesList);
 
     assertEquals(studentDetails, actualStudentDetails);
     assertEquals(2, actualStudentDetails.size());
@@ -104,11 +121,15 @@ class StudentServiceTest {
 
     List<Student> students = new ArrayList<>();
     List<StudentCourse> studentCoursesList = new ArrayList<>();
+    List<CourseStatus> courseStatusList = new ArrayList<>();
     List<StudentDetail> studentDetails = createTestStudentDetails();
 
     when(repository.searchStudents()).thenReturn(students);
     when(repository.searchStudentCoursesList()).thenReturn(studentCoursesList);
-    when(converter.convertStudentDetails(students, studentCoursesList)).thenReturn(studentDetails);
+    when(repository.searchCourseStatusesList()).thenReturn(courseStatusList);
+    when(
+        converter.convertStudentDetails(students, studentCoursesList, courseStatusList)).thenReturn(
+        studentDetails);
 
     // 実行
     List<StudentDetail> actualStudentDetails = sut.searchStudentList(deleted);
@@ -116,7 +137,9 @@ class StudentServiceTest {
     // 検証
     verify(repository, times(1)).searchStudents();
     verify(repository, times(1)).searchStudentCoursesList();
-    verify(converter, times(1)).convertStudentDetails(students, studentCoursesList);
+    verify(repository, times(1)).searchCourseStatusesList();
+    verify(converter, times(1)).convertStudentDetails(students, studentCoursesList,
+        courseStatusList);
 
     assertEquals(1, actualStudentDetails.size());
     assertFalse(actualStudentDetails.get(0).getStudent().isDeleted());
@@ -130,11 +153,15 @@ class StudentServiceTest {
 
     List<Student> students = new ArrayList<>();
     List<StudentCourse> studentCoursesList = new ArrayList<>();
+    List<CourseStatus> courseStatusList = new ArrayList<>();
     List<StudentDetail> studentDetails = createTestStudentDetails();
 
     when(repository.searchStudents()).thenReturn(students);
     when(repository.searchStudentCoursesList()).thenReturn(studentCoursesList);
-    when(converter.convertStudentDetails(students, studentCoursesList)).thenReturn(studentDetails);
+    when(repository.searchCourseStatusesList()).thenReturn(courseStatusList);
+    when(
+        converter.convertStudentDetails(students, studentCoursesList, courseStatusList)).thenReturn(
+        studentDetails);
 
     // 実行
     List<StudentDetail> actualStudentDetails = sut.searchStudentList(deleted);
@@ -142,13 +169,16 @@ class StudentServiceTest {
     // 検証
     verify(repository, times(1)).searchStudents();
     verify(repository, times(1)).searchStudentCoursesList();
-    verify(converter, times(1)).convertStudentDetails(students, studentCoursesList);
+    verify(repository, times(1)).searchCourseStatusesList();
+    verify(converter, times(1)).convertStudentDetails(students, studentCoursesList,
+        courseStatusList);
 
     assertEquals(1, actualStudentDetails.size());
     assertTrue(actualStudentDetails.get(0).getStudent().isDeleted());
 
   }
 
+  //TODO：20240725ここから下はまだ検証できていない
   @Test
   void 受講生詳細の検索_正常系_リポジトリの処理を適切に呼び出して受講生IDに紐づく受講生情報と受講生コース情報が返ってくること()
       throws ResourceNotFoundException {
@@ -213,7 +243,13 @@ class StudentServiceTest {
     studentCourses.add(studentCourse1);
     studentCourses.add(studentCourse2);
 
-    StudentDetail studentDetail = new StudentDetail(student, studentCourses);
+    List<CourseStatus> courseStatuses = new ArrayList<>();
+    CourseStatus courseStatuses1 = new CourseStatus();
+    CourseStatus courseStatuses2 = new CourseStatus();
+    courseStatuses.add(courseStatuses1);
+    courseStatuses.add(courseStatuses2);
+
+    StudentDetail studentDetail = new StudentDetail(student, studentCourses, courseStatuses);
 
     doNothing().when(repository).registerStudent(any(Student.class));
     doNothing().when(repository).registerStudentCourses(any(StudentCourse.class));
@@ -255,7 +291,13 @@ class StudentServiceTest {
     studentCourses.add(studentCourse1);
     studentCourses.add(studentCourse2);
 
-    StudentDetail studentDetail = new StudentDetail(student, studentCourses);
+    List<CourseStatus> courseStatuses = new ArrayList<>();
+    CourseStatus courseStatuses1 = new CourseStatus();
+    CourseStatus courseStatuses2 = new CourseStatus();
+    courseStatuses.add(courseStatuses1);
+    courseStatuses.add(courseStatuses2);
+
+    StudentDetail studentDetail = new StudentDetail(student, studentCourses, courseStatuses);
 
     doNothing().when(repository).updateStudent(any(Student.class));
     doNothing().when(repository).updateStudentCourses(any(StudentCourse.class));
