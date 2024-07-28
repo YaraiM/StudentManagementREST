@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import raisetech.student.management.model.domain.CourseDetail;
+import raisetech.student.management.model.domain.IntegratedDetail;
 import raisetech.student.management.model.domain.StudentDetail;
 import raisetech.student.management.model.exception.ErrorResponse;
 import raisetech.student.management.model.exception.ResourceNotFoundException;
@@ -93,10 +95,10 @@ public class StudentController {
       )
   })
   @PostMapping("/students/new")
-  public ResponseEntity<StudentDetail> registerStudent(
-      @RequestBody @Valid StudentDetail studentDetail) {
-    StudentDetail newStudentDetail = service.registerStudent(studentDetail);
-    return ResponseEntity.ok(newStudentDetail);
+  public ResponseEntity<IntegratedDetail> registerStudent(
+      @RequestBody @Valid StudentDetail studentDetail, List<CourseDetail> courseDetails) {
+    IntegratedDetail newStudent = service.registerStudent(studentDetail);
+    return ResponseEntity.ok(new IntegratedDetail());
   }
 
   /**

@@ -7,20 +7,18 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import raisetech.student.management.model.data.Student;
-import raisetech.student.management.model.data.StudentCourse;
 
-@Schema(description = "受講生詳細情報")
+@Schema(description = "統合情報")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class StudentDetail {
+public class IntegratedDetail {
 
   @Valid
-  private Student student;
+  private StudentDetail studentDetail;
 
   @Valid
-  private List<StudentCourse> studentCourses;
+  private List<CourseDetail> courseDetails;
 
 }

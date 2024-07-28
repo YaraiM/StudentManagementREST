@@ -21,10 +21,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import raisetech.student.management.controller.converter.StudentConverter;
+import raisetech.student.management.model.converter.CourseConverter;
+import raisetech.student.management.model.converter.StudentConverter;
 import raisetech.student.management.model.data.CourseStatus;
 import raisetech.student.management.model.data.Student;
 import raisetech.student.management.model.data.StudentCourse;
+import raisetech.student.management.model.domain.CourseDetail;
+import raisetech.student.management.model.domain.IntegratedDetail;
 import raisetech.student.management.model.domain.StudentDetail;
 import raisetech.student.management.model.exception.ResourceNotFoundException;
 import raisetech.student.management.model.repository.StudentRepository;
@@ -37,7 +40,10 @@ class StudentServiceTest {
   private StudentRepository repository;
 
   @Mock
-  private StudentConverter converter;
+  private StudentConverter studentConverter;
+
+  @Mock
+  private CourseConverter courseConverter;
 
   private StudentService sut;
 
@@ -53,13 +59,7 @@ class StudentServiceTest {
     StudentCourse activeStudentCourse2 = new StudentCourse();
     List<StudentCourse> activeStudentCourses = new ArrayList<>(
         List.of(activeStudentCourse1, activeStudentCourse2));
-    CourseStatus activeStudentCourseStatus1 = new CourseStatus();
-    CourseStatus activeStudentCourseStatus2 = new CourseStatus();
-    List<CourseStatus> activeStudentCourseStatuses = new ArrayList<>(
-        List.of(activeStudentCourseStatus1, activeStudentCourseStatus2));
-
-    StudentDetail activeStudentDetail = new StudentDetail(activeStudent, activeStudentCourses,
-        activeStudentCourseStatuses);
+    StudentDetail activeStudentDetail = new StudentDetail(activeStudent, activeStudentCourses);
 
     Student deletedStudent = new Student();
     deletedStudent.setDeleted(true);
@@ -67,20 +67,14 @@ class StudentServiceTest {
     StudentCourse deletedStudentCourse2 = new StudentCourse();
     List<StudentCourse> deletedStudentCourses = new ArrayList<>(
         List.of(deletedStudentCourse1, deletedStudentCourse2));
-    CourseStatus deletedStudentCourseStatus1 = new CourseStatus();
-    CourseStatus deletedStudentCourseStatus2 = new CourseStatus();
-    List<CourseStatus> deletedStudentCourseStatuses = new ArrayList<>(
-        List.of(deletedStudentCourseStatus1, deletedStudentCourseStatus2));
-
-    StudentDetail deletedStudentDetail = new StudentDetail(deletedStudent, deletedStudentCourses,
-        deletedStudentCourseStatuses);
+    StudentDetail deletedStudentDetail = new StudentDetail(deletedStudent, deletedStudentCourses);
 
     return new ArrayList<>(List.of(activeStudentDetail, deletedStudentDetail));
   }
 
   @BeforeEach
   void before() {
-    sut = new StudentService(repository, converter);
+    sut = new StudentService(repository, studentConverter, courseConverter);
   }
 
   @Test
@@ -90,14 +84,12 @@ class StudentServiceTest {
 
     List<Student> students = new ArrayList<>();
     List<StudentCourse> studentCoursesList = new ArrayList<>();
-    List<CourseStatus> courseStatusesList = new ArrayList<>();
     List<StudentDetail> studentDetails = createTestStudentDetails();
 
     when(repository.searchStudents()).thenReturn(students);
     when(repository.searchStudentCoursesList()).thenReturn(studentCoursesList);
-    when(repository.searchCourseStatusesList()).thenReturn(courseStatusesList);
-    when(converter.convertStudentDetails(students, studentCoursesList,
-        courseStatusesList)).thenReturn(studentDetails);
+    when(studentConverter.convertStudentDetails(students, studentCoursesList)).thenReturn(
+        studentDetails);
 
     // 実行
     List<StudentDetail> actualStudentDetails = sut.searchStudentList(deleted);
@@ -105,9 +97,7 @@ class StudentServiceTest {
     // 検証
     verify(repository, times(1)).searchStudents();
     verify(repository, times(1)).searchStudentCoursesList();
-    verify(repository, times(1)).searchCourseStatusesList();
-    verify(converter, times(1)).convertStudentDetails(students, studentCoursesList,
-        courseStatusesList);
+    verify(studentConverter, times(1)).convertStudentDetails(students, studentCoursesList);
 
     assertEquals(studentDetails, actualStudentDetails);
     assertEquals(2, actualStudentDetails.size());
@@ -121,14 +111,11 @@ class StudentServiceTest {
 
     List<Student> students = new ArrayList<>();
     List<StudentCourse> studentCoursesList = new ArrayList<>();
-    List<CourseStatus> courseStatusList = new ArrayList<>();
     List<StudentDetail> studentDetails = createTestStudentDetails();
 
     when(repository.searchStudents()).thenReturn(students);
     when(repository.searchStudentCoursesList()).thenReturn(studentCoursesList);
-    when(repository.searchCourseStatusesList()).thenReturn(courseStatusList);
-    when(
-        converter.convertStudentDetails(students, studentCoursesList, courseStatusList)).thenReturn(
+    when(studentConverter.convertStudentDetails(students, studentCoursesList)).thenReturn(
         studentDetails);
 
     // 実行
@@ -137,9 +124,7 @@ class StudentServiceTest {
     // 検証
     verify(repository, times(1)).searchStudents();
     verify(repository, times(1)).searchStudentCoursesList();
-    verify(repository, times(1)).searchCourseStatusesList();
-    verify(converter, times(1)).convertStudentDetails(students, studentCoursesList,
-        courseStatusList);
+    verify(studentConverter, times(1)).convertStudentDetails(students, studentCoursesList);
 
     assertEquals(1, actualStudentDetails.size());
     assertFalse(actualStudentDetails.get(0).getStudent().isDeleted());
@@ -153,14 +138,11 @@ class StudentServiceTest {
 
     List<Student> students = new ArrayList<>();
     List<StudentCourse> studentCoursesList = new ArrayList<>();
-    List<CourseStatus> courseStatusList = new ArrayList<>();
     List<StudentDetail> studentDetails = createTestStudentDetails();
 
     when(repository.searchStudents()).thenReturn(students);
     when(repository.searchStudentCoursesList()).thenReturn(studentCoursesList);
-    when(repository.searchCourseStatusesList()).thenReturn(courseStatusList);
-    when(
-        converter.convertStudentDetails(students, studentCoursesList, courseStatusList)).thenReturn(
+    when(studentConverter.convertStudentDetails(students, studentCoursesList)).thenReturn(
         studentDetails);
 
     // 実行
@@ -169,16 +151,34 @@ class StudentServiceTest {
     // 検証
     verify(repository, times(1)).searchStudents();
     verify(repository, times(1)).searchStudentCoursesList();
-    verify(repository, times(1)).searchCourseStatusesList();
-    verify(converter, times(1)).convertStudentDetails(students, studentCoursesList,
-        courseStatusList);
+    verify(studentConverter, times(1)).convertStudentDetails(students, studentCoursesList);
 
     assertEquals(1, actualStudentDetails.size());
-    assertTrue(actualStudentDetails.get(0).getStudent().isDeleted());
+    assertTrue(actualStudentDetails.getFirst().getStudent().isDeleted());
 
   }
 
-  //TODO：20240725ここから下はまだ検証できていない
+  @Test
+  void 受講生コース詳細の一覧検索_リポジトリとコンバーターの処理を適切に呼び出し全件検索できること() {
+    List<StudentCourse> studentCoursesList = new ArrayList<>();
+    List<CourseStatus> courseStatusList = new ArrayList<>();
+    List<CourseDetail> courseDetails = new ArrayList<>();
+
+    when(repository.searchStudentCoursesList()).thenReturn(studentCoursesList);
+    when(repository.searchCourseStatusList()).thenReturn(courseStatusList);
+    when(courseConverter.convertCourseDetails(studentCoursesList, courseStatusList)).thenReturn(
+        courseDetails);
+
+    // 実行
+    sut.searchStudentCourseList();
+
+    // 検証
+    verify(repository, times(1)).searchStudentCoursesList();
+    verify(repository, times(1)).searchCourseStatusList();
+    verify(courseConverter, times(1)).convertCourseDetails(studentCoursesList, courseStatusList);
+
+  }
+
   @Test
   void 受講生詳細の検索_正常系_リポジトリの処理を適切に呼び出して受講生IDに紐づく受講生情報と受講生コース情報が返ってくること()
       throws ResourceNotFoundException {
@@ -231,43 +231,87 @@ class StudentServiceTest {
   }
 
   @Test
-  void 受講生詳細情報の新規登録_リポジトリの処理を適切に呼び出したうえで受講生コース情報の初期情報が適切に登録されていること() {
+  void 受講生コース詳細の検索_正常系_リポジトリの処理を適切に呼び出して受講生コースIDに紐づくコース申込状況と受講生コース情報が返ってくること()
+      throws ResourceNotFoundException {
+
+    int id = 555;
+    StudentCourse studentCourse = new StudentCourse();
+    studentCourse.setId(id);
+
+    CourseStatus courseStatus = new CourseStatus();
+    courseStatus.setCourseId(studentCourse.getId());
+
+    when(repository.searchStudentCourse(id)).thenReturn(studentCourse);
+    when(repository.searchCourseStatus(studentCourse.getId())).thenReturn(courseStatus);
+
+    // 実行
+    CourseDetail result = sut.searchStudentCourse(id);
+
+    // 検証
+    verify(repository, times(1)).searchStudentCourse(id);
+    verify(repository, times(1)).searchCourseStatus(studentCourse.getId());
+    assertNotNull(result);
+    assertEquals(studentCourse, result.getStudentCourse());
+    assertEquals(courseStatus, result.getCourseStatus());
+    assertEquals(result.getStudentCourse().getId(), result.getCourseStatus().getCourseId());
+
+  }
+
+  @Test
+  void 受講生コース詳細の検索_異常系_存在しない受講生コースIDをメソッドに渡した場合に例外がスローされること()
+      throws ResourceNotFoundException {
     // 事前準備
-    int id = 1;
+    int id = 777;
+    StudentCourse studentCourse = new StudentCourse();
+    when(repository.searchStudentCourse(id)).thenReturn(null);
+
+    assertThrows(ResourceNotFoundException.class, () -> sut.searchStudentCourse(id));
+
+    verify(repository, times(1)).searchStudentCourse(id);
+    verify(repository, never()).searchCourseStatus(studentCourse.getId());
+
+  }
+
+  @Test
+  void 受講生詳細情報の新規登録_リポジトリの処理を適切に呼び出したうえで受講生コース情報の初期情報が登録されコース申込状況が適切にインスタンス化されていること() {
+    // 事前準備
+    int studentId = 0;
+    int courseId1 = 1;
+    int courseId2 = 2;
+
     Student student = new Student();
-    student.setId(id);
+    student.setId(studentId);
 
     List<StudentCourse> studentCourses = new ArrayList<>();
     StudentCourse studentCourse1 = new StudentCourse();
     StudentCourse studentCourse2 = new StudentCourse();
+    studentCourse1.setId(courseId1);
+    studentCourse2.setId(courseId2);
     studentCourses.add(studentCourse1);
     studentCourses.add(studentCourse2);
 
-    List<CourseStatus> courseStatuses = new ArrayList<>();
-    CourseStatus courseStatuses1 = new CourseStatus();
-    CourseStatus courseStatuses2 = new CourseStatus();
-    courseStatuses.add(courseStatuses1);
-    courseStatuses.add(courseStatuses2);
-
-    StudentDetail studentDetail = new StudentDetail(student, studentCourses, courseStatuses);
+    StudentDetail studentDetail = new StudentDetail(student, studentCourses);
 
     doNothing().when(repository).registerStudent(any(Student.class));
     doNothing().when(repository).registerStudentCourses(any(StudentCourse.class));
+    doNothing().when(repository).registerCourseStatus(any(CourseStatus.class));
 
     LocalDateTime testStartTime = LocalDateTime.now();
 
     // 実行
-    StudentDetail result = sut.registerStudent(studentDetail);
+    IntegratedDetail result = sut.registerStudent(studentDetail);
 
     // 検証
     verify(repository, times(1)).registerStudent(student);
     verify(repository, times(2)).registerStudentCourses(any(StudentCourse.class));
+    verify(repository, times(2)).registerCourseStatus(any(CourseStatus.class));
     assertNotNull(result);
-    assertEquals(student, result.getStudent());
-    assertEquals(2, result.getStudentCourses().size());
+    assertEquals(student, result.getStudentDetail().getStudent());
+    assertEquals(2, result.getStudentDetail().getStudentCourses().size());
+    assertEquals(2, result.getCourseDetails().size());
 
-    for (StudentCourse studentCourse : result.getStudentCourses()) {
-      assertEquals(id, studentCourse.getStudentId());
+    for (StudentCourse studentCourse : result.getStudentDetail().getStudentCourses()) {
+      assertEquals(studentId, studentCourse.getStudentId());
       assertTrue(
           studentCourse.getStartDate().isAfter(testStartTime) || studentCourse.getStartDate()
               .isEqual(testStartTime));
@@ -276,6 +320,11 @@ class StudentServiceTest {
       assertEquals(1,
           ChronoUnit.YEARS.between(studentCourse.getStartDate(), studentCourse.getEndDate()));
 
+    }
+
+    for (CourseDetail courseDetail : result.getCourseDetails()) {
+      assertEquals(courseDetail.getStudentCourse().getId(),
+          courseDetail.getCourseStatus().getCourseId());
     }
 
   }
@@ -291,13 +340,7 @@ class StudentServiceTest {
     studentCourses.add(studentCourse1);
     studentCourses.add(studentCourse2);
 
-    List<CourseStatus> courseStatuses = new ArrayList<>();
-    CourseStatus courseStatuses1 = new CourseStatus();
-    CourseStatus courseStatuses2 = new CourseStatus();
-    courseStatuses.add(courseStatuses1);
-    courseStatuses.add(courseStatuses2);
-
-    StudentDetail studentDetail = new StudentDetail(student, studentCourses, courseStatuses);
+    StudentDetail studentDetail = new StudentDetail(student, studentCourses);
 
     doNothing().when(repository).updateStudent(any(Student.class));
     doNothing().when(repository).updateStudentCourses(any(StudentCourse.class));
@@ -308,6 +351,21 @@ class StudentServiceTest {
     // 検証
     verify(repository, times(1)).updateStudent(student);
     verify(repository, times(2)).updateStudentCourses(any(StudentCourse.class));
+
+  }
+
+  @Test
+  void コース申込状況の更新_リポジトリの処理を適切に呼び出していること() {
+    // 事前準備
+    CourseStatus courseStatus = new CourseStatus();
+
+    doNothing().when(repository).updateCourseStatus(any(CourseStatus.class));
+
+    // 実行
+    sut.updateCourseStatus(courseStatus);
+
+    // 検証
+    verify(repository, times(1)).updateCourseStatus(courseStatus);
 
   }
 

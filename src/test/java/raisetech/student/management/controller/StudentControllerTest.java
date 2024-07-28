@@ -26,7 +26,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import raisetech.student.management.model.data.CourseStatus;
 import raisetech.student.management.model.data.Student;
 import raisetech.student.management.model.data.StudentCourse;
 import raisetech.student.management.model.domain.StudentDetail;
@@ -65,13 +64,7 @@ class StudentControllerTest {
     studentCourse2.setStudentId(student.getId());
     List<StudentCourse> studentCourses = new ArrayList<>(List.of(studentCourse1, studentCourse2));
 
-    CourseStatus courseStatus1 = new CourseStatus();
-    CourseStatus courseStatus2 = new CourseStatus();
-    courseStatus1.setCourseId(studentCourse1.getId());
-    courseStatus2.setCourseId(studentCourse2.getId());
-    List<CourseStatus> courseStatuses = new ArrayList<>(List.of(courseStatus1, courseStatus2));
-
-    return new StudentDetail(student, studentCourses, courseStatuses);
+    return new StudentDetail(student, studentCourses);
   }
 
   @Test

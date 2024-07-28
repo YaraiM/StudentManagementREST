@@ -1,10 +1,9 @@
-package raisetech.student.management.controller.converter;
+package raisetech.student.management.model.converter;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
-import raisetech.student.management.model.data.CourseStatus;
 import raisetech.student.management.model.data.Student;
 import raisetech.student.management.model.data.StudentCourse;
 import raisetech.student.management.model.domain.StudentDetail;
@@ -20,11 +19,10 @@ public class StudentConverter {
    *
    * @param students           受講生の一覧
    * @param studentCoursesList 受講生のコースの一覧
-   * @param courseStatusesList コースの申込状況の一覧
    * @return 受講生の詳細情報
    */
   public List<StudentDetail> convertStudentDetails(List<Student> students,
-      List<StudentCourse> studentCoursesList, List<CourseStatus> courseStatusesList) {
+      List<StudentCourse> studentCoursesList) {
     List<StudentDetail> studentDetails = new ArrayList<>();
 
     for (Student student : students) {
@@ -36,13 +34,6 @@ public class StudentConverter {
           .filter(studentCourse -> studentCourse.getStudentId() == student.getId())
           .collect(Collectors.toList());
       studentDetail.setStudentCourses(convertStudentCourses);
-
-      // TODO:要動作確認。studentCoursesとcourseStatusが正しく紐づいているか。
-      List<CourseStatus> convertCourseStatuses = courseStatusesList.stream()
-          .filter(courseStatus -> convertStudentCourses.stream()
-              .anyMatch(studentCourse -> studentCourse.getId() == courseStatus.getCourseId()))
-          .collect(Collectors.toList());
-      studentDetail.setCourseStatuses(convertCourseStatuses);
 
       studentDetails.add(studentDetail);
 
