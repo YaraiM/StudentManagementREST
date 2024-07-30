@@ -1,4 +1,4 @@
-package raisetech.student.management.controller.converter;
+package raisetech.student.management.model.converter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -32,16 +32,17 @@ class StudentConverterTest {
       students.add(student);
     }
 
-    List<StudentCourse> studentCourses = new ArrayList<>();
+    List<StudentCourse> studentCoursesList = new ArrayList<>();
     for (int i = 1; i <= 2; i++) {
       StudentCourse studentCourse = new StudentCourse();
       studentCourse.setStudentId(i);
-      studentCourses.add(studentCourse); //受講生IDが同じコースを2つセットして検証する
-      studentCourses.add(studentCourse);
+      studentCoursesList.add(studentCourse); //受講生IDが同じコースを2つずつセットして検証する
+      studentCoursesList.add(studentCourse);
     }
 
     // 実行
-    List<StudentDetail> actualStudentDetails = sut.convertStudentDetails(students, studentCourses);
+    List<StudentDetail> actualStudentDetails = sut.convertStudentDetails(students,
+        studentCoursesList);
 
     // 検証
     assertEquals(2, actualStudentDetails.size());

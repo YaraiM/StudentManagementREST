@@ -19,3 +19,10 @@ CREATE TABLE IF NOT EXISTS students_courses (
     end_date DATETIME,
     FOREIGN KEY (student_id) REFERENCES students(id)
 );
+
+CREATE TABLE IF NOT EXISTS course_status (
+     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+     course_id INT NOT NULL,
+     status ENUM('仮申込', '本申込', '受講中', '受講終了'),
+     FOREIGN KEY (course_id) REFERENCES students_courses(id)
+);

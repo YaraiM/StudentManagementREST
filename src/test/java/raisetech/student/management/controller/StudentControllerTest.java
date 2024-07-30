@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static raisetech.student.management.model.data.Gender.男性;
+import static raisetech.student.management.model.data.Status.仮申込;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.ConstraintViolation;
@@ -26,8 +27,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import raisetech.student.management.model.data.CourseStatus;
 import raisetech.student.management.model.data.Student;
 import raisetech.student.management.model.data.StudentCourse;
+import raisetech.student.management.model.domain.CourseDetail;
 import raisetech.student.management.model.domain.StudentDetail;
 import raisetech.student.management.model.exception.ResourceNotFoundException;
 import raisetech.student.management.model.services.StudentService;
@@ -58,12 +61,31 @@ class StudentControllerTest {
 
     StudentCourse studentCourse1 = new StudentCourse();
     StudentCourse studentCourse2 = new StudentCourse();
+    studentCourse1.setId(1);
+    studentCourse2.setId(2);
     studentCourse1.setStudentId(student.getId());
     studentCourse2.setStudentId(student.getId());
     List<StudentCourse> studentCourses = new ArrayList<>(List.of(studentCourse1, studentCourse2));
 
     return new StudentDetail(student, studentCourses);
   }
+
+  /**
+   * テスト用にCourseDetailオブジェクトを作成するメソッドです。受講生コースIDのみセットされたインスタンスが生成されます。
+   *
+   * @param id 受講生コースID
+   * @return 受講生コースの詳細情報
+   */
+  private static CourseDetail createTestCourseDetail(int id) {
+    StudentCourse studentCourse = new StudentCourse();
+    studentCourse.setId(id);
+
+    CourseStatus courseStatus = new CourseStatus();
+    courseStatus.setCourseId(id);
+
+    return new CourseDetail(studentCourse, courseStatus);
+  }
+
 
   @Test
   void 受講生詳細の一覧検索_deletedをリクエストパラメータに指定しない場合にエンドポイントでサービスの処理が適切に呼び出されて処理成功のレスポンスが返ってくること()
@@ -88,6 +110,17 @@ class StudentControllerTest {
         .andExpect(status().isOk());
 
     verify(service, times(1)).searchStudentList(deleted);
+  }
+
+  @Test
+  void 受講生コース詳細の一覧検索_エンドポイントでサービスの処理が適切に呼び出されて処理成功のレスポンスが返ってくること()
+      throws Exception {
+    // 実行と検証
+    mockMvc.perform(
+            MockMvcRequestBuilders.get("/students/courses"))
+        .andExpect(status().isOk());
+
+    verify(service, times(1)).searchStudentCourseList();
   }
 
   @Test
@@ -131,12 +164,48 @@ class StudentControllerTest {
   }
 
   @Test
+  void 受講生コース詳細の検索_正常系_存在する受講生コースIDを指定したときにエンドポイントでサービスの処理が適切に呼び出され指定したIDに紐づくcourseDetailが返ってくること()
+      throws Exception {
+    // 事前準備
+    int id = 666;
+    CourseDetail courseDetail = createTestCourseDetail(id);
+    when(service.searchStudentCourse(id)).thenReturn(courseDetail);
+
+    // 実行と検証
+    mockMvc.perform(
+            MockMvcRequestBuilders.get("/students/courses/detail").param("id", String.valueOf(id)))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.studentCourse.id").value(id))
+        .andExpect(jsonPath("$.courseStatus.courseId").value(id));
+
+    verify(service, times(1)).searchStudentCourse(id);
+  }
+
+  @Test
+  void 受講生コース詳細の検索_異常系_存在しない受講生IDを指定したときに例外がスローされること()
+      throws Exception {
+    // 事前準備
+    int id = 999;
+    when(service.searchStudentCourse(id)).thenThrow(
+        new ResourceNotFoundException("受講生ID 「" + id + "」は存在しません"));
+
+    // 実行と検証
+    mockMvc.perform(MockMvcRequestBuilders.get("/students/courses/detail")
+            .param("id", String.valueOf(id)))
+        .andExpect(status().isNotFound())
+        .andExpect(result -> assertTrue(
+            result.getResolvedException() instanceof ResourceNotFoundException))
+        .andExpect(result -> assertEquals("受講生ID 「" + id + "」は存在しません",
+            result.getResolvedException().getMessage()));
+
+    verify(service, times(1)).searchStudentCourse(id);
+  }
+
+
+  @Test
   void 受講生の新規登録_エンドポイントでサービスの処理が適切に呼び出され空で返ってくること()
       throws Exception {
-    // リクエストデータを実際のリクエストデータと同様にJSONで入力し、入力チェックの検証も兼ねている。
-    // 本来であれば返りは登録されたデータが入るが、モック化すると意味がないため、レスポンスは作らない。
-    // 実際のテストコードは、プロダクトコードと並行して作る（Postmanの動作確認前）ので、JSON形式の入力チェックをやっておく。
-
     // 実行と検証
     mockMvc.perform(
             MockMvcRequestBuilders.post("/students/new").contentType(MediaType.APPLICATION_JSON)
@@ -211,7 +280,26 @@ class StudentControllerTest {
   }
 
   @Test
-  void 入力チェック_リクエスト可能な情報がすべて適切な場合に入力チェックがかからないこと()
+  void コース申込状況の更新_エンドポイントでサービスの処理が適切に呼び出され_更新処理が成功しました_というメッセージが返ってくること()
+      throws Exception {
+
+    // 実行と検証
+    mockMvc.perform(MockMvcRequestBuilders.put("/students/courses/statuses/update")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(
+                """
+                    {"courseId":1, "status":"受講中"}
+                    """
+            ))
+        .andExpect(status().isOk())
+        .andExpect(content().string("更新処理が成功しました"));
+
+    verify(service, times(1)).updateCourseStatus(any());
+
+  }
+
+  @Test
+  void 受講生詳細情報の入力チェック_リクエスト可能な情報がすべて適切な場合に入力チェックがかからないこと()
       throws Exception {
     // 事前準備
     int id = 666;
@@ -238,7 +326,7 @@ class StudentControllerTest {
   }
 
   @Test
-  void 入力チェック_リクエスト可能な情報のうち入力値の指定がある項目が不適切な場合に入力チェックがかかること()
+  void 受講生詳細情報の入力チェック_リクエスト可能な情報のうち入力値の指定がある項目が不適切な場合に入力チェックがかかること()
       throws Exception {
     // 事前準備
     int id = 666;
@@ -261,6 +349,40 @@ class StudentControllerTest {
 
     // 検証
     assertEquals(5, violations.size());
+
+  }
+
+  @Test
+  void コース申込状況の入力チェック_リクエスト可能な情報がすべて適切な場合に入力チェックがかからないこと()
+      throws Exception {
+    // 事前準備
+    CourseStatus courseStatus = new CourseStatus();
+
+    courseStatus.setId(111);
+    courseStatus.setCourseId(222);
+    courseStatus.setStatus(仮申込);
+
+    Set<ConstraintViolation<CourseStatus>> violations = validator.validate(courseStatus);
+
+    // 検証
+    assertEquals(0, violations.size());
+
+  }
+
+  @Test
+  void コース申込状況の入力チェック_リクエスト可能な情報のうち入力値の指定がある項目が不適切な場合に入力チェックがかかること()
+      throws Exception {
+    // 事前準備
+    CourseStatus courseStatus = new CourseStatus();
+
+    courseStatus.setId(111); // ユーザーがリクエストできない情報のため検証不要
+    courseStatus.setCourseId(222); // ユーザーがリクエストできない情報のため検証不要
+    courseStatus.setStatus(null); // statusはnullを許容しない
+
+    Set<ConstraintViolation<CourseStatus>> violations = validator.validate(courseStatus);
+
+    // 検証
+    assertEquals(1, violations.size());
 
   }
 

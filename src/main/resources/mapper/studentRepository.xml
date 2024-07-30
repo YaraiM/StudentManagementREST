@@ -20,10 +20,28 @@
     SELECT * FROM students_courses
   </select>
 
-  <!--  受講生のコース情報の検索  -->
+  <!--  受講生コース情報の検索  -->
+  <select id="searchStudentCourse"
+    resultType="raisetech.student.management.model.data.StudentCourse">
+    SELECT * FROM students_courses WHERE id = #{id}
+  </select>
+
+  <!--  受講生IDに紐づく受講生のコース情報の検索  -->
   <select id="searchStudentCourses"
     resultType="raisetech.student.management.model.data.StudentCourse">
     SELECT * FROM students_courses WHERE student_id = #{studentId}
+  </select>
+
+  <!--  受講生コースの申込状況の全件検索  -->
+  <select id="searchCourseStatusList"
+    resultType="raisetech.student.management.model.data.CourseStatus">
+    SELECT * FROM course_status
+  </select>
+
+  <!--  受講生コースIDに紐づく申込状況の検索  -->
+  <select id="searchCourseStatus"
+    resultType="raisetech.student.management.model.data.CourseStatus">
+    SELECT * FROM course_status WHERE course_id = #{courseId}
   </select>
 
   <!--  受講生情報の新規登録  -->
@@ -39,6 +57,11 @@
     #{courseName}, #{startDate}, #{endDate})
   </insert>
 
+  <!--  受講生コースの申込状況の新規登録  -->
+  <insert id="registerCourseStatus" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO course_status(course_id, status) values(#{courseId}, '仮申込')
+  </insert>
+
   <!--  受講生情報の更新  -->
   <update id="updateStudent">
     UPDATE students SET fullname=#{fullname}, furigana=#{furigana}, nickname=#{nickname},
@@ -49,6 +72,11 @@
   <!--  受講生のコース情報の更新  -->
   <update id="updateStudentCourses">
     UPDATE students_courses SET course_name=#{courseName} WHERE id=#{id}
+  </update>
+
+  <!--  受講生コースの申込状況の更新  -->
+  <update id="updateCourseStatus">
+    UPDATE course_status SET status=#{status} WHERE course_id=#{courseId}
   </update>
 
 </mapper>
