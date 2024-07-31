@@ -1,6 +1,7 @@
 package raisetech.student.management.model.exception;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,5 +19,6 @@ public class ErrorResponse {
 
   private int status;
   private String message;
+  private Map<String, String> errors;
 
 }

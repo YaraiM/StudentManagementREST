@@ -10,6 +10,7 @@ import raisetech.student.management.model.converter.StudentConverter;
 import raisetech.student.management.model.data.CourseStatus;
 import raisetech.student.management.model.data.Student;
 import raisetech.student.management.model.data.StudentCourse;
+import raisetech.student.management.model.data.StudentSearchCriteria;
 import raisetech.student.management.model.domain.CourseDetail;
 import raisetech.student.management.model.domain.IntegratedDetail;
 import raisetech.student.management.model.domain.StudentDetail;
@@ -38,30 +39,67 @@ public class StudentService {
    *
    * @return 受講生詳細情報一覧
    */
-  public List<StudentDetail> searchStudentList(
-      Boolean deleted) {
+  public List<StudentDetail> searchStudentList(StudentSearchCriteria criteria) {
     List<Student> students = repository.searchStudents();
     List<StudentCourse> studentsCoursesList = repository.searchStudentCoursesList();
     List<StudentDetail> studentDetails = studentConverter.convertStudentDetails(students,
         studentsCoursesList);
 
     return studentDetails.stream()
-        .filter(studentDetail ->
-            deleted == null || studentDetail.getStudent().isDeleted() == deleted)
+        .filter(studentDetail -> meetsCriteria(studentDetail, criteria))
         .toList();
 
   }
 
   /**
+   * 受講生一覧検索を行う際のフィルタリングロジックです。
+   *
+   * @param studentDetail 受講生詳細
+   * @param criteria      フィルタリングの基準値（＝検索条件）
+   * @return 検索条件に合致したかどうかの真偽値
+   */
+  private boolean meetsCriteria(StudentDetail studentDetail, StudentSearchCriteria criteria) {
+    return (criteria.getFullname() == null ||
+        studentDetail.getStudent().getFullname().contains(criteria.getFullname())) &&
+        (criteria.getFurigana() == null ||
+            studentDetail.getStudent().getFurigana().contains(criteria.getFurigana())) &&
+        (criteria.getNickname() == null ||
+            studentDetail.getStudent().getNickname().contains(criteria.getNickname())) &&
+        (criteria.getMail() == null ||
+            studentDetail.getStudent().getMail().contains(criteria.getMail())) &&
+        (criteria.getAddress() == null ||
+            studentDetail.getStudent().getAddress().contains(criteria.getAddress())) &&
+        (criteria.getMinAge() == null ||
+            studentDetail.getStudent().getAge() >= criteria.getMinAge()) &&
+        (criteria.getMaxAge() == null ||
+            studentDetail.getStudent().getAge() <= criteria.getMaxAge()) &&
+        (criteria.getGender() == null ||
+            studentDetail.getStudent().getGender() == criteria.getGender()) &&
+        (criteria.getDeleted() == null ||
+            studentDetail.getStudent().isDeleted() == criteria.getDeleted()) &&
+        (criteria.getCourseName() == null ||
+            studentDetail.getStudentCourses().stream()
+                .anyMatch(course -> course.getCourseName().contains(criteria.getCourseName())));
+
+  }
+
+
+  /**
    * 受講生コース詳細一覧検索です。 受講生コースの一覧とコース申込状況一覧をcourseConverterでコース詳細情報一覧に変換します。
+   * リクエストパラメータに申込状況を指定して絞り込み検索することができます。
    *
    * @return コース詳細情報一覧
    */
-  public List<CourseDetail> searchStudentCourseList() {
+  public List<CourseDetail> searchStudentCourseList(CourseStatus courseStatus) {
     List<StudentCourse> studentCoursesList = repository.searchStudentCoursesList();
     List<CourseStatus> courseStatusesList = repository.searchCourseStatusList();
+    List<CourseDetail> courseDetails = courseConverter.convertCourseDetails(studentCoursesList,
+        courseStatusesList);
 
-    return courseConverter.convertCourseDetails(studentCoursesList, courseStatusesList);
+    return courseDetails.stream()
+        .filter(
+            courseDetail -> courseStatus == null || courseDetail.getCourseStatus() == courseStatus)
+        .toList();
 
   }
 
