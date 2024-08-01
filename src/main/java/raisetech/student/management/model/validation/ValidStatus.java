@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
 
 @Documented
 @Constraint(validatedBy = StatusValidator.class)
-@Target({ElementType.FIELD})
+@Target({ElementType.PARAMETER, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ValidStatus {
 

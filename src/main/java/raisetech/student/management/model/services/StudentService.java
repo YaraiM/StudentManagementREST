@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import raisetech.student.management.model.converter.CourseConverter;
 import raisetech.student.management.model.converter.StudentConverter;
+import raisetech.student.management.model.data.CourseSearchCriteria;
 import raisetech.student.management.model.data.CourseStatus;
 import raisetech.student.management.model.data.Student;
 import raisetech.student.management.model.data.StudentCourse;
@@ -46,7 +47,7 @@ public class StudentService {
         studentsCoursesList);
 
     return studentDetails.stream()
-        .filter(studentDetail -> meetsCriteria(studentDetail, criteria))
+        .filter(studentDetail -> meetsStudentSearchCriteria(studentDetail, criteria))
         .toList();
 
   }
@@ -58,7 +59,8 @@ public class StudentService {
    * @param criteria      フィルタリングの基準値（＝検索条件）
    * @return 検索条件に合致したかどうかの真偽値
    */
-  private boolean meetsCriteria(StudentDetail studentDetail, StudentSearchCriteria criteria) {
+  private boolean meetsStudentSearchCriteria(StudentDetail studentDetail,
+      StudentSearchCriteria criteria) {
     return (criteria.getFullname() == null ||
         studentDetail.getStudent().getFullname().contains(criteria.getFullname())) &&
         (criteria.getFurigana() == null ||
@@ -90,18 +92,34 @@ public class StudentService {
    *
    * @return コース詳細情報一覧
    */
-  public List<CourseDetail> searchStudentCourseList(CourseStatus courseStatus) {
+  public List<CourseDetail> searchStudentCourseList(CourseSearchCriteria criteria) {
     List<StudentCourse> studentCoursesList = repository.searchStudentCoursesList();
     List<CourseStatus> courseStatusesList = repository.searchCourseStatusList();
     List<CourseDetail> courseDetails = courseConverter.convertCourseDetails(studentCoursesList,
         courseStatusesList);
 
     return courseDetails.stream()
-        .filter(
-            courseDetail -> courseStatus == null || courseDetail.getCourseStatus() == courseStatus)
+        .filter(courseDetail -> meetsCourseSearchCriteria(courseDetail, criteria))
         .toList();
 
   }
+
+  /**
+   * 受講生コース一覧検索を行う際のフィルタリングロジックです。
+   *
+   * @param courseDetail 受講生詳細
+   * @param criteria     フィルタリングの基準値（＝検索条件）
+   * @return 検索条件に合致したかどうかの真偽値
+   */
+  private boolean meetsCourseSearchCriteria(CourseDetail courseDetail,
+      CourseSearchCriteria criteria) {
+    return (criteria.getCourseName() == null ||
+        courseDetail.getStudentCourse().getCourseName().contains(criteria.getCourseName())) &&
+        (criteria.getStatus() == null ||
+            courseDetail.getCourseStatus().getStatus() == criteria.getStatus());
+
+  }
+
 
   /**
    * 受講生検索です。 IDに紐づく任意の受講生の情報を取得した後、その受講生に紐づく受講生コース情報を取得し、受講生の情報を設定します。

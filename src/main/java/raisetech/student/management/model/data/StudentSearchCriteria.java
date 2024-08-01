@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import raisetech.student.management.model.validation.ValidGender;
 
 @Schema(description = "受講生一覧検索時に指定可能なパラメータ")
 @Getter
@@ -25,7 +24,7 @@ public class StudentSearchCriteria {
   private String nickname;
 
   @Schema(description = "受講生のメールアドレス（部分一致）")
-  @Email
+  @Email(message = "有効なメールアドレスを入力してください")
   private String mail;
 
   @Schema(description = "受講生の住所（部分一致）")
@@ -38,7 +37,6 @@ public class StudentSearchCriteria {
   private Integer maxAge;
 
   @Schema(description = "受講生の性別（男性、女性、その他　のいずれか）")
-  @ValidGender
   private Gender gender;
 
   @Schema(description = "受講生の削除フラグ")

@@ -24,6 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import raisetech.student.management.model.converter.CourseConverter;
 import raisetech.student.management.model.converter.StudentConverter;
 import raisetech.student.management.model.data.CourseStatus;
+import raisetech.student.management.model.data.Gender;
 import raisetech.student.management.model.data.Student;
 import raisetech.student.management.model.data.StudentCourse;
 import raisetech.student.management.model.domain.CourseDetail;
@@ -72,15 +73,26 @@ class StudentServiceTest {
     return new ArrayList<>(List.of(activeStudentDetail, deletedStudentDetail));
   }
 
+
   @BeforeEach
   void before() {
     sut = new StudentService(repository, studentConverter, courseConverter);
   }
 
+  // TODO:パラメーターが多すぎて、テストが難解ではないか。簡略化する方法はないか。
   @Test
-  void 受講生詳細の一覧検索_引数deletedがnullの場合にリポジトリとコンバーターの処理を適切に呼び出し全件検索できること() {
+  void 受講生詳細の一覧検索_引数がない場合にリポジトリとコンバーターの処理を適切に呼び出し全件検索できること() {
     // 事前準備
-    Boolean deleted = null;
+    String fullname;
+    String furigana;
+    String nickname;
+    String mail;
+    String address;
+    Integer minAge;
+    Integer maxAge;
+    Gender gender;
+    Boolean deleted;
+    String courseName;
 
     List<Student> students = new ArrayList<>();
     List<StudentCourse> studentCoursesList = new ArrayList<>();
@@ -92,7 +104,9 @@ class StudentServiceTest {
         studentDetails);
 
     // 実行
-    List<StudentDetail> actualStudentDetails = sut.searchStudentList(deleted);
+    List<StudentDetail> actualStudentDetails = sut.searchStudentList(fullname, furigana, nickname,
+        mail, address,
+        minAge, maxAge, gender, deleted, courseName);
 
     // 検証
     verify(repository, times(1)).searchStudents();

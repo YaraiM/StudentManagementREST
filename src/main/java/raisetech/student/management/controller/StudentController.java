@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import raisetech.student.management.model.data.CourseSearchCriteria;
 import raisetech.student.management.model.data.CourseStatus;
 import raisetech.student.management.model.data.StudentSearchCriteria;
 import raisetech.student.management.model.domain.CourseDetail;
@@ -77,9 +78,10 @@ public class StudentController {
       )
   })
   @GetMapping("/students/courses")
-  public List<CourseDetail> getStudentCoursesList(@Valid CourseStatus courseStatus) {
+  public List<CourseDetail> getStudentCoursesList(
+      @Valid @ModelAttribute CourseSearchCriteria criteria) {
 
-    return service.searchStudentCourseList(courseStatus);
+    return service.searchStudentCourseList(criteria);
 
   }
 
