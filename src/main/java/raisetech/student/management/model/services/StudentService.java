@@ -81,10 +81,25 @@ public class StudentService {
             studentDetail.getStudent().isDeleted() == criteria.getDeleted()) &&
         (criteria.getCourseName() == null ||
             studentDetail.getStudentCourses().stream()
-                .anyMatch(course -> course.getCourseName().contains(criteria.getCourseName())));
+                .anyMatch(course -> course.getCourseName().contains(criteria.getCourseName()))) &&
+        (criteria.getBeforeStartDate() == null ||
+            studentDetail.getStudentCourses().stream()
+                .anyMatch(course -> course.getStartDate().toLocalDate()
+                    .isAfter(criteria.getBeforeStartDate()))) &&
+        (criteria.getAfterStartDate() == null ||
+            studentDetail.getStudentCourses().stream()
+                .anyMatch(course -> course.getStartDate().toLocalDate()
+                    .isBefore(criteria.getAfterStartDate()))) &&
+        (criteria.getBeforeEndDate() == null ||
+            studentDetail.getStudentCourses().stream()
+                .anyMatch(course -> course.getEndDate().toLocalDate()
+                    .isAfter(criteria.getBeforeEndDate()))) &&
+        (criteria.getAfterEndDate() == null ||
+            studentDetail.getStudentCourses().stream()
+                .anyMatch(course -> course.getEndDate().toLocalDate()
+                    .isBefore(criteria.getAfterEndDate())));
 
   }
-
 
   /**
    * 受講生コース詳細一覧検索です。 受講生コースの一覧とコース申込状況一覧をcourseConverterでコース詳細情報一覧に変換します。
@@ -115,11 +130,22 @@ public class StudentService {
       CourseSearchCriteria criteria) {
     return (criteria.getCourseName() == null ||
         courseDetail.getStudentCourse().getCourseName().contains(criteria.getCourseName())) &&
+        (criteria.getBeforeStartDate() == null ||
+            courseDetail.getStudentCourse().getStartDate().toLocalDate()
+                .isAfter(criteria.getBeforeStartDate())) &&
+        (criteria.getAfterStartDate() == null ||
+            courseDetail.getStudentCourse().getStartDate().toLocalDate()
+                .isBefore(criteria.getAfterStartDate())) &&
+        (criteria.getBeforeEndDate() == null ||
+            courseDetail.getStudentCourse().getEndDate().toLocalDate()
+                .isAfter(criteria.getBeforeEndDate())) &&
+        (criteria.getAfterEndDate() == null ||
+            courseDetail.getStudentCourse().getEndDate().toLocalDate()
+                .isBefore(criteria.getAfterEndDate())) &&
         (criteria.getStatus() == null ||
             courseDetail.getCourseStatus().getStatus() == criteria.getStatus());
 
   }
-
 
   /**
    * 受講生検索です。 IDに紐づく任意の受講生の情報を取得した後、その受講生に紐づく受講生コース情報を取得し、受講生の情報を設定します。
