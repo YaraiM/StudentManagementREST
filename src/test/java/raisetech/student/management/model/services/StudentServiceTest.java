@@ -1,7 +1,6 @@
 package raisetech.student.management.model.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -12,21 +11,29 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import raisetech.student.management.model.converter.CourseConverter;
 import raisetech.student.management.model.converter.StudentConverter;
+import raisetech.student.management.model.data.CourseSearchCriteria;
 import raisetech.student.management.model.data.CourseStatus;
 import raisetech.student.management.model.data.Gender;
+import raisetech.student.management.model.data.Status;
 import raisetech.student.management.model.data.Student;
 import raisetech.student.management.model.data.StudentCourse;
+import raisetech.student.management.model.data.StudentSearchCriteria;
 import raisetech.student.management.model.domain.CourseDetail;
 import raisetech.student.management.model.domain.IntegratedDetail;
 import raisetech.student.management.model.domain.StudentDetail;
@@ -49,50 +56,73 @@ class StudentServiceTest {
   private StudentService sut;
 
   /**
-   * テスト用に空の受講生詳細情報一覧を作成するメソッドです。コンバーターの代わりです。 deleted属性がtrueの受講生とfalseの受講生が一人ずつセットされています。
+   * テスト用に受講生詳細情報一覧を作成するメソッドです。コンバーターの代わりです。
    *
    * @return　受講生詳細情報一覧
    */
   private static List<StudentDetail> createTestStudentDetails() {
-    Student activeStudent = new Student();
-    activeStudent.setDeleted(false);
-    StudentCourse activeStudentCourse1 = new StudentCourse();
-    StudentCourse activeStudentCourse2 = new StudentCourse();
-    List<StudentCourse> activeStudentCourses = new ArrayList<>(
-        List.of(activeStudentCourse1, activeStudentCourse2));
-    StudentDetail activeStudentDetail = new StudentDetail(activeStudent, activeStudentCourses);
+    Student student1 = new Student(555, "田中太郎", "たなかたろう", "たなっち",
+        "tanaka@example.com", "東京", 21, Gender.男性, "テスト用", false);
 
-    Student deletedStudent = new Student();
-    deletedStudent.setDeleted(true);
-    StudentCourse deletedStudentCourse1 = new StudentCourse();
-    StudentCourse deletedStudentCourse2 = new StudentCourse();
-    List<StudentCourse> deletedStudentCourses = new ArrayList<>(
-        List.of(deletedStudentCourse1, deletedStudentCourse2));
-    StudentDetail deletedStudentDetail = new StudentDetail(deletedStudent, deletedStudentCourses);
+    StudentCourse studentCourse1 = new StudentCourse(666, 555, "Java",
+        LocalDateTime.of(2024, 7, 1, 0, 0, 0),
+        LocalDateTime.of(2025, 7, 1, 0, 0, 0));
+    StudentCourse studentCourse2 = new StudentCourse(777, 555, "Python",
+        LocalDateTime.of(2024, 9, 1, 0, 0, 0),
+        LocalDateTime.of(2025, 9, 1, 0, 0, 0));
+    List<StudentCourse> studentCourses1 = new ArrayList<>(
+        List.of(studentCourse1, studentCourse2));
+    StudentDetail studentDetail1 = new StudentDetail(student1, studentCourses1);
 
-    return new ArrayList<>(List.of(activeStudentDetail, deletedStudentDetail));
+    Student student2 = new Student(666, "鈴木花子", "すすきはなこ", "すずっち",
+        "suzuki@example.com", "大阪", 37, Gender.女性, "テスト用", true);
+
+    StudentCourse studentCourse3 = new StudentCourse(888, 666, "Design",
+        LocalDateTime.of(2023, 7, 1, 0, 0, 0),
+        LocalDateTime.of(2024, 7, 1, 0, 0, 0));
+    StudentCourse studentCourse4 = new StudentCourse(999, 666, "Front",
+        LocalDateTime.of(2023, 9, 1, 0, 0, 0),
+        LocalDateTime.of(2024, 9, 1, 0, 0, 0));
+    List<StudentCourse> studentCourses2 = new ArrayList<>(
+        List.of(studentCourse3, studentCourse4));
+    StudentDetail studentDetail2 = new StudentDetail(student2, studentCourses2);
+
+    return new ArrayList<>(List.of(studentDetail1, studentDetail2));
+
   }
 
+  /**
+   * テスト用に受講生コース詳細情報一覧を作成するメソッドです。コンバーターの代わりです。
+   *
+   * @return　受講生コース詳細情報一覧
+   */
+  private static List<CourseDetail> createTestCourseDetails() {
+    StudentCourse studentCourse1 = new StudentCourse(666, 555, "Java",
+        LocalDateTime.of(2024, 7, 1, 0, 0, 0),
+        LocalDateTime.of(2025, 7, 1, 0, 0, 0));
+    StudentCourse studentCourse2 = new StudentCourse(777, 555, "Python",
+        LocalDateTime.of(2024, 9, 1, 0, 0, 0),
+        LocalDateTime.of(2025, 9, 1, 0, 0, 0));
+
+    CourseStatus courseStatus1 = new CourseStatus(111, 666, Status.受講中);
+    CourseStatus courseStatus2 = new CourseStatus(222, 777, Status.本申込);
+
+    CourseDetail courseDetail1 = new CourseDetail(studentCourse1, courseStatus1);
+    CourseDetail courseDetail2 = new CourseDetail(studentCourse2, courseStatus2);
+
+    return new ArrayList<>(List.of(courseDetail1, courseDetail2));
+
+  }
 
   @BeforeEach
   void before() {
     sut = new StudentService(repository, studentConverter, courseConverter);
   }
 
-  // TODO:パラメーターが多すぎて、テストが難解ではないか。簡略化する方法はないか。
-  @Test
-  void 受講生詳細の一覧検索_引数がない場合にリポジトリとコンバーターの処理を適切に呼び出し全件検索できること() {
-    // 事前準備
-    String fullname;
-    String furigana;
-    String nickname;
-    String mail;
-    String address;
-    Integer minAge;
-    Integer maxAge;
-    Gender gender;
-    Boolean deleted;
-    String courseName;
+  @ParameterizedTest
+  @MethodSource("provideStudentTestCases")
+  void 受講生詳細の一覧検索_引数に応じて適切にフィルタリングが行われること(
+      StudentSearchCriteria criteria, int expectedResultCount) {
 
     List<Student> students = new ArrayList<>();
     List<StudentCourse> studentCoursesList = new ArrayList<>();
@@ -104,79 +134,55 @@ class StudentServiceTest {
         studentDetails);
 
     // 実行
-    List<StudentDetail> actualStudentDetails = sut.searchStudentList(fullname, furigana, nickname,
-        mail, address,
-        minAge, maxAge, gender, deleted, courseName);
+    List<StudentDetail> actualStudentDetails = sut.searchStudentList(criteria);
 
     // 検証
     verify(repository, times(1)).searchStudents();
     verify(repository, times(1)).searchStudentCoursesList();
     verify(studentConverter, times(1)).convertStudentDetails(students, studentCoursesList);
 
-    assertEquals(studentDetails, actualStudentDetails);
-    assertEquals(2, actualStudentDetails.size());
+    assertEquals(expectedResultCount, actualStudentDetails.size());
 
   }
 
-  @Test
-  void 受講生詳細の一覧検索_引数deletedがfalseの場合にリポジトリとコンバーターの処理を適切に呼び出し現在の受講生詳細の一覧を検索できること() {
-    // 事前準備
-    Boolean deleted = false;
-
-    List<Student> students = new ArrayList<>();
-    List<StudentCourse> studentCoursesList = new ArrayList<>();
-    List<StudentDetail> studentDetails = createTestStudentDetails();
-
-    when(repository.searchStudents()).thenReturn(students);
-    when(repository.searchStudentCoursesList()).thenReturn(studentCoursesList);
-    when(studentConverter.convertStudentDetails(students, studentCoursesList)).thenReturn(
-        studentDetails);
-
-    // 実行
-    List<StudentDetail> actualStudentDetails = sut.searchStudentList(deleted);
-
-    // 検証
-    verify(repository, times(1)).searchStudents();
-    verify(repository, times(1)).searchStudentCoursesList();
-    verify(studentConverter, times(1)).convertStudentDetails(students, studentCoursesList);
-
-    assertEquals(1, actualStudentDetails.size());
-    assertFalse(actualStudentDetails.get(0).getStudent().isDeleted());
-
-  }
-
-  @Test
-  void 受講生詳細の一覧検索_引数deletedがtrueの場合にリポジトリとコンバーターの処理を適切に呼び出し過去の受講生詳細の一覧を検索できること() {
-    // 事前準備
-    Boolean deleted = true;
-
-    List<Student> students = new ArrayList<>();
-    List<StudentCourse> studentCoursesList = new ArrayList<>();
-    List<StudentDetail> studentDetails = createTestStudentDetails();
-
-    when(repository.searchStudents()).thenReturn(students);
-    when(repository.searchStudentCoursesList()).thenReturn(studentCoursesList);
-    when(studentConverter.convertStudentDetails(students, studentCoursesList)).thenReturn(
-        studentDetails);
-
-    // 実行
-    List<StudentDetail> actualStudentDetails = sut.searchStudentList(deleted);
-
-    // 検証
-    verify(repository, times(1)).searchStudents();
-    verify(repository, times(1)).searchStudentCoursesList();
-    verify(studentConverter, times(1)).convertStudentDetails(students, studentCoursesList);
-
-    assertEquals(1, actualStudentDetails.size());
-    assertTrue(actualStudentDetails.getFirst().getStudent().isDeleted());
+  /**
+   * 受講生詳細一覧検索のパラメータテストに適用するテストケースです。
+   *
+   * @return Argument
+   */
+  private static Stream<Arguments> provideStudentTestCases() {
+    return Stream.of(
+        // リクエストパラメータなし。全件検索が行われるケース。
+        Arguments.of(new StudentSearchCriteria(null, null, null,
+            null, null, null, null, null, null, null,
+            null, null, null, null), 2),
+        // すべてのリクエストパラメータを入力し、条件に合致するものが一つだけ存在するケース。
+        Arguments.of(new StudentSearchCriteria("田中太郎", "たなかたろう",
+            "たなっち", "tanaka@example.com", "東京", 10, 30,
+            Gender.男性, false, "Java",
+            LocalDate.of(2024, 6, 1),
+            LocalDate.of(2024, 8, 1),
+            LocalDate.of(2025, 6, 1),
+            LocalDate.of(2025, 8, 1)), 1),
+        // すべてのリクエストパラメータを入力し、条件に合致するものが一つも存在しないケース。
+        Arguments.of(new StudentSearchCriteria("鈴木太郎", "たなかたろう",
+            "たなっち", "tanaka@example.com", "東京", 10, 30,
+            Gender.男性, false, "Java",
+            LocalDate.of(2024, 6, 1),
+            LocalDate.of(2024, 8, 1),
+            LocalDate.of(2025, 6, 1),
+            LocalDate.of(2025, 8, 1)), 0));
 
   }
 
-  @Test
-  void 受講生コース詳細の一覧検索_リポジトリとコンバーターの処理を適切に呼び出し全件検索できること() {
+  @ParameterizedTest
+  @MethodSource("provideCourseTestCases")
+  void 受講生コース詳細の一覧検索_引数に応じて適切に条件検索が行われること(
+      CourseSearchCriteria criteria, int expectedResultCount) {
+
     List<StudentCourse> studentCoursesList = new ArrayList<>();
     List<CourseStatus> courseStatusList = new ArrayList<>();
-    List<CourseDetail> courseDetails = new ArrayList<>();
+    List<CourseDetail> courseDetails = createTestCourseDetails();
 
     when(repository.searchStudentCoursesList()).thenReturn(studentCoursesList);
     when(repository.searchCourseStatusList()).thenReturn(courseStatusList);
@@ -184,12 +190,39 @@ class StudentServiceTest {
         courseDetails);
 
     // 実行
-    sut.searchStudentCourseList();
+    List<CourseDetail> actualCourseDetails = sut.searchStudentCourseList(criteria);
 
     // 検証
     verify(repository, times(1)).searchStudentCoursesList();
     verify(repository, times(1)).searchCourseStatusList();
     verify(courseConverter, times(1)).convertCourseDetails(studentCoursesList, courseStatusList);
+
+    assertEquals(expectedResultCount, actualCourseDetails.size());
+
+  }
+
+  /**
+   * 受講生コース詳細一覧検索のパラメータテストに適用するテストケースです。
+   *
+   * @return Argument
+   */
+  private static Stream<Arguments> provideCourseTestCases() {
+    return Stream.of(
+        // リクエストパラメータなし。全件検索が行われるケース。
+        Arguments.of(new CourseSearchCriteria(null,
+            null, null, null, null, null), 2),
+        // すべてのリクエストパラメータを入力し、条件に合致するものが一つだけ存在するケース。
+        Arguments.of(new CourseSearchCriteria("Java",
+            LocalDate.of(2024, 6, 1),
+            LocalDate.of(2024, 8, 1),
+            LocalDate.of(2025, 6, 1),
+            LocalDate.of(2025, 8, 1), Status.受講中), 1),
+        // すべてのリクエストパラメータを入力し、条件に合致するものが一つも存在しないケース。
+        Arguments.of(new CourseSearchCriteria("Java",
+            LocalDate.of(2024, 6, 1),
+            LocalDate.of(2024, 8, 1),
+            LocalDate.of(2025, 6, 1),
+            LocalDate.of(2025, 8, 1), Status.受講終了), 0));
 
   }
 
