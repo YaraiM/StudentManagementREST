@@ -27,9 +27,11 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import raisetech.student.management.model.data.CourseSearchCriteria;
 import raisetech.student.management.model.data.CourseStatus;
 import raisetech.student.management.model.data.Student;
 import raisetech.student.management.model.data.StudentCourse;
+import raisetech.student.management.model.data.StudentSearchCriteria;
 import raisetech.student.management.model.domain.CourseDetail;
 import raisetech.student.management.model.domain.StudentDetail;
 import raisetech.student.management.model.exception.ResourceNotFoundException;
@@ -86,41 +88,34 @@ class StudentControllerTest {
     return new CourseDetail(studentCourse, courseStatus);
   }
 
-
   @Test
-  void 受講生詳細の一覧検索_deletedをリクエストパラメータに指定しない場合にエンドポイントでサービスの処理が適切に呼び出されて処理成功のレスポンスが返ってくること()
-      throws Exception {
-    // 実行と検証
-    mockMvc.perform(
-            MockMvcRequestBuilders.get("/students"))
-        .andExpect(status().isOk());
-
-    verify(service, times(1)).searchStudentList(null);
-  }
-
-  @Test
-  void 受講生詳細の一覧検索_deleteが指定されている場合にエンドポイントでサービスの処理が適切に呼び出されて処理成功のレスポンスが返ってくること()
+  void 受講生詳細の一覧検索_エンドポイントでサービスの処理が適切に呼び出されて処理成功のレスポンスが返ってくること()
       throws Exception {
     // 事前準備
-    Boolean deleted = false;
+    StudentSearchCriteria criteria = new StudentSearchCriteria();
 
     // 実行と検証
     mockMvc.perform(
-            MockMvcRequestBuilders.get("/students").param("deleted", String.valueOf(deleted)))
+            MockMvcRequestBuilders.get("/students").flashAttr("criteria", criteria))
         .andExpect(status().isOk());
 
-    verify(service, times(1)).searchStudentList(deleted);
+    // 検証：適切な型の引数を入力した際に１回実行されることを確認
+    verify(service, times(1)).searchStudentList(any(StudentSearchCriteria.class));
   }
 
   @Test
   void 受講生コース詳細の一覧検索_エンドポイントでサービスの処理が適切に呼び出されて処理成功のレスポンスが返ってくること()
       throws Exception {
+    // 事前準備
+    CourseSearchCriteria criteria = new CourseSearchCriteria();
+
     // 実行と検証
     mockMvc.perform(
-            MockMvcRequestBuilders.get("/students/courses"))
+            MockMvcRequestBuilders.get("/students/courses").flashAttr("criteria", criteria))
         .andExpect(status().isOk());
 
-    verify(service, times(1)).searchStudentCourseList();
+    // 検証：適切な型の引数を入力した際に１回実行されることを確認
+    verify(service, times(1)).searchStudentCourseList(any(CourseSearchCriteria.class));
   }
 
   @Test
