@@ -47,15 +47,15 @@ public class StudentSearchCriteria {
   private String courseName;
 
   @Schema(description = "コース仮申込日の範囲検索（起点）")
-  private LocalDate beforeStartDate;
+  private LocalDate startDateFrom;
 
   @Schema(description = "コース仮申込日の範囲検索（終点）")
-  private LocalDate afterStartDate;
+  private LocalDate startDateTo;
 
   @Schema(description = "コース受講終了日の範囲検索（起点）")
-  private LocalDate beforeEndDate;
+  private LocalDate endDateFrom;
 
   @Schema(description = "コース受講終了日の範囲検索（終点）")
-  private LocalDate afterEndDate;
+  private LocalDate endDateTo;
 
 }

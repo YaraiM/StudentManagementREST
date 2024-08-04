@@ -53,51 +53,96 @@ public class StudentService {
   }
 
   /**
-   * 受講生一覧検索を行う際のフィルタリングロジックです。
+   * 受講生一覧検索を行う際のフィルタリングロジックです。 指定された検索条件が受講生詳細情報と合致しない場合、if文が実行され、falseを返します。
+   * 検索条件が指定されていない、もしくは指定された検索条件が受講生詳細情報と合致している場合、if文は実行されず、スキップされます。 すべてのif文がスキップされた場合、trueを返します。
    *
-   * @param studentDetail 受講生詳細
-   * @param criteria      フィルタリングの基準値（＝検索条件）
+   * @param studentDetail 受講生の詳細情報
+   * @param criteria      受講生の検索条件
    * @return 検索条件に合致したかどうかの真偽値
    */
   private boolean meetsStudentSearchCriteria(StudentDetail studentDetail,
       StudentSearchCriteria criteria) {
-    return (criteria.getFullname() == null ||
-        studentDetail.getStudent().getFullname().contains(criteria.getFullname())) &&
-        (criteria.getFurigana() == null ||
-            studentDetail.getStudent().getFurigana().contains(criteria.getFurigana())) &&
-        (criteria.getNickname() == null ||
-            studentDetail.getStudent().getNickname().contains(criteria.getNickname())) &&
-        (criteria.getMail() == null ||
-            studentDetail.getStudent().getMail().contains(criteria.getMail())) &&
-        (criteria.getAddress() == null ||
-            studentDetail.getStudent().getAddress().contains(criteria.getAddress())) &&
-        (criteria.getMinAge() == null ||
-            studentDetail.getStudent().getAge() >= criteria.getMinAge()) &&
-        (criteria.getMaxAge() == null ||
-            studentDetail.getStudent().getAge() <= criteria.getMaxAge()) &&
-        (criteria.getGender() == null ||
-            studentDetail.getStudent().getGender() == criteria.getGender()) &&
-        (criteria.getDeleted() == null ||
-            studentDetail.getStudent().isDeleted() == criteria.getDeleted()) &&
-        (criteria.getCourseName() == null ||
-            studentDetail.getStudentCourses().stream()
-                .anyMatch(course -> course.getCourseName().contains(criteria.getCourseName()))) &&
-        (criteria.getBeforeStartDate() == null ||
-            studentDetail.getStudentCourses().stream()
-                .anyMatch(course -> course.getStartDate().toLocalDate()
-                    .isAfter(criteria.getBeforeStartDate()))) &&
-        (criteria.getAfterStartDate() == null ||
-            studentDetail.getStudentCourses().stream()
-                .anyMatch(course -> course.getStartDate().toLocalDate()
-                    .isBefore(criteria.getAfterStartDate()))) &&
-        (criteria.getBeforeEndDate() == null ||
-            studentDetail.getStudentCourses().stream()
-                .anyMatch(course -> course.getEndDate().toLocalDate()
-                    .isAfter(criteria.getBeforeEndDate()))) &&
-        (criteria.getAfterEndDate() == null ||
-            studentDetail.getStudentCourses().stream()
-                .anyMatch(course -> course.getEndDate().toLocalDate()
-                    .isBefore(criteria.getAfterEndDate())));
+
+    if (criteria.getFullname() != null &&
+        !studentDetail.getStudent().getFullname().contains(criteria.getFullname())) {
+      return false;
+    }
+
+    if (criteria.getFurigana() != null &&
+        !studentDetail.getStudent().getFurigana().contains(criteria.getFurigana())) {
+      return false;
+    }
+
+    if (criteria.getNickname() != null &&
+        !studentDetail.getStudent().getNickname().contains(criteria.getNickname())) {
+      return false;
+    }
+
+    if (criteria.getMail() != null &&
+        !studentDetail.getStudent().getMail().contains(criteria.getMail())) {
+      return false;
+    }
+
+    if (criteria.getAddress() != null &&
+        !studentDetail.getStudent().getAddress().contains(criteria.getAddress())) {
+      return false;
+    }
+
+    if (criteria.getMinAge() != null &&
+        studentDetail.getStudent().getAge() < criteria.getMinAge()) {
+      return false;
+    }
+
+    if (criteria.getMaxAge() != null &&
+        studentDetail.getStudent().getAge() > criteria.getMaxAge()) {
+      return false;
+    }
+
+    if (criteria.getGender() != null &&
+        studentDetail.getStudent().getGender() != criteria.getGender()) {
+      return false;
+    }
+
+    if (criteria.getDeleted() != null &&
+        studentDetail.getStudent().isDeleted() != criteria.getDeleted()) {
+      return false;
+    }
+
+    if (criteria.getCourseName() != null &&
+        studentDetail.getStudentCourses().stream()
+            .noneMatch(course -> course.getCourseName().contains(criteria.getCourseName()))) {
+      return false;
+    }
+
+    if (criteria.getStartDateFrom() != null &&
+        studentDetail.getStudentCourses().stream()
+            .noneMatch(course -> course.getStartDate().toLocalDate()
+                .isAfter(criteria.getStartDateFrom()))) {
+      return false;
+    }
+
+    if (criteria.getStartDateTo() != null &&
+        studentDetail.getStudentCourses().stream()
+            .noneMatch(course -> course.getStartDate().toLocalDate()
+                .isBefore(criteria.getStartDateTo()))) {
+      return false;
+    }
+
+    if (criteria.getEndDateFrom() != null &&
+        studentDetail.getStudentCourses().stream()
+            .noneMatch(course -> course.getEndDate().toLocalDate()
+                .isAfter(criteria.getEndDateFrom()))) {
+      return false;
+    }
+
+    if (criteria.getEndDateTo() != null &&
+        studentDetail.getStudentCourses().stream()
+            .noneMatch(course -> course.getEndDate().toLocalDate()
+                .isBefore(criteria.getEndDateTo()))) {
+      return false;
+    }
+
+    return true;
 
   }
 
@@ -120,30 +165,51 @@ public class StudentService {
   }
 
   /**
-   * 受講生コース一覧検索を行う際のフィルタリングロジックです。
+   * 受講生コース一覧検索を行う際のフィルタリングのロジックです。 指定された検索条件がコース詳細情報と合致しない場合、if文が実行され、falseを返します。
+   * 検索条件が指定されていない、もしくは指定された検索条件がコース詳細情報と合致している場合、if文は実行されず、スキップされます。 すべてのif文がスキップされた場合、trueを返します。
    *
-   * @param courseDetail 受講生詳細
-   * @param criteria     フィルタリングの基準値（＝検索条件）
+   * @param courseDetail コースの詳細情報
+   * @param criteria     コースの検索条件
    * @return 検索条件に合致したかどうかの真偽値
    */
   private boolean meetsCourseSearchCriteria(CourseDetail courseDetail,
       CourseSearchCriteria criteria) {
-    return (criteria.getCourseName() == null ||
-        courseDetail.getStudentCourse().getCourseName().contains(criteria.getCourseName())) &&
-        (criteria.getBeforeStartDate() == null ||
-            courseDetail.getStudentCourse().getStartDate().toLocalDate()
-                .isAfter(criteria.getBeforeStartDate())) &&
-        (criteria.getAfterStartDate() == null ||
-            courseDetail.getStudentCourse().getStartDate().toLocalDate()
-                .isBefore(criteria.getAfterStartDate())) &&
-        (criteria.getBeforeEndDate() == null ||
-            courseDetail.getStudentCourse().getEndDate().toLocalDate()
-                .isAfter(criteria.getBeforeEndDate())) &&
-        (criteria.getAfterEndDate() == null ||
-            courseDetail.getStudentCourse().getEndDate().toLocalDate()
-                .isBefore(criteria.getAfterEndDate())) &&
-        (criteria.getStatus() == null ||
-            courseDetail.getCourseStatus().getStatus() == criteria.getStatus());
+
+    if (criteria.getCourseName() != null &&
+        !courseDetail.getStudentCourse().getCourseName().contains(criteria.getCourseName())) {
+      return false;
+    }
+
+    if (criteria.getStartDateFrom() != null &&
+        !courseDetail.getStudentCourse().getStartDate().toLocalDate()
+            .isAfter(criteria.getStartDateFrom())) {
+      return false;
+    }
+
+    if (criteria.getStartDateTo() != null &&
+        !courseDetail.getStudentCourse().getStartDate().toLocalDate()
+            .isBefore(criteria.getStartDateTo())) {
+      return false;
+    }
+
+    if (criteria.getEndDateFrom() != null &&
+        !courseDetail.getStudentCourse().getEndDate().toLocalDate()
+            .isAfter(criteria.getEndDateFrom())) {
+      return false;
+    }
+
+    if (criteria.getEndDateTo() != null &&
+        !courseDetail.getStudentCourse().getEndDate().toLocalDate()
+            .isBefore(criteria.getEndDateTo())) {
+      return false;
+    }
+
+    if (criteria.getStatus() != null &&
+        courseDetail.getCourseStatus().getStatus() != criteria.getStatus()) {
+      return false;
+    }
+
+    return true;
 
   }
 
