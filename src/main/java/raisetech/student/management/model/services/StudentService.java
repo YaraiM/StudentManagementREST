@@ -1,5 +1,6 @@
 package raisetech.student.management.model.services;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +10,8 @@ import raisetech.student.management.model.converter.CourseConverter;
 import raisetech.student.management.model.converter.StudentConverter;
 import raisetech.student.management.model.data.CourseSearchCriteria;
 import raisetech.student.management.model.data.CourseStatus;
+import raisetech.student.management.model.data.Gender;
+import raisetech.student.management.model.data.Status;
 import raisetech.student.management.model.data.Student;
 import raisetech.student.management.model.data.StudentCourse;
 import raisetech.student.management.model.data.StudentSearchCriteria;
@@ -47,108 +50,65 @@ public class StudentService {
         studentsCoursesList);
 
     return studentDetails.stream()
-        .filter(studentDetail -> meetsStudentSearchCriteria(studentDetail, criteria))
+        .filter(studentDetail -> doesFullnameContain(criteria.getFullname(),
+            studentDetail.getStudent().getFullname()))
+
+        .filter(studentDetail -> doesFuriganaContain(criteria.getFurigana(),
+            studentDetail.getStudent().getFurigana()))
+
+        .filter(studentDetail -> doesNicknameContain(criteria.getNickname(),
+            studentDetail.getStudent().getNickname()))
+
+        .filter(studentDetail -> doesMailContain(criteria.getMail(),
+            studentDetail.getStudent().getMail()))
+
+        .filter(studentDetail -> doesAddressContain(criteria.getAddress(),
+            studentDetail.getStudent().getAddress()))
+
+        .filter(studentDetail -> isAgeAtLeast(criteria.getMinAge(),
+            studentDetail.getStudent().getAge()))
+
+        .filter(studentDetail -> isAgeLessThan(criteria.getMaxAge(),
+            studentDetail.getStudent().getAge()))
+
+        .filter(studentDetail -> doesGenderMatch(criteria.getGender(),
+            studentDetail.getStudent().getGender()))
+
+        .filter(studentDetail -> isDeleted(criteria.getDeleted(),
+            studentDetail.getStudent().isDeleted()))
+
+        .filter(studentDetail -> studentDetail.getStudentCourses()
+            .stream()
+            .anyMatch(studentCourse -> doesCourseNameContain(criteria.getCourseName(),
+                studentCourse.getCourseName())))
+
+        .filter(studentDetail -> studentDetail.getStudentCourses()
+            .stream()
+            .anyMatch(studentCourse -> isStartDateOnOrAfter(criteria.getStartDateFrom(),
+                studentCourse.getStartDate().toLocalDate())))
+
+        .filter(studentDetail -> studentDetail.getStudentCourses()
+            .stream()
+            .anyMatch(studentCourse -> isStartDateOnOrBefore(criteria.getStartDateTo(),
+                studentCourse.getStartDate().toLocalDate())))
+
+        .filter(studentDetail -> studentDetail.getStudentCourses()
+            .stream()
+            .anyMatch(studentCourse -> isEndDateOnOrAfter(criteria.getEndDateFrom(),
+                studentCourse.getEndDate().toLocalDate())))
+
+        .filter(studentDetail -> studentDetail.getStudentCourses()
+            .stream()
+            .anyMatch(studentCourse -> isEndDateOnOrBefore(criteria.getEndDateFrom(),
+                studentCourse.getStartDate().toLocalDate())))
+
         .toList();
 
   }
 
   /**
-   * 受講生一覧検索を行う際のフィルタリングロジックです。 指定された検索条件が受講生詳細情報と合致しない場合、if文が実行され、falseを返します。
-   * 検索条件が指定されていない、もしくは指定された検索条件が受講生詳細情報と合致している場合、if文は実行されず、スキップされます。 すべてのif文がスキップされた場合、trueを返します。
-   *
-   * @param studentDetail 受講生の詳細情報
-   * @param criteria      受講生の検索条件
-   * @return 検索条件に合致したかどうかの真偽値
-   */
-  private boolean meetsStudentSearchCriteria(StudentDetail studentDetail,
-      StudentSearchCriteria criteria) {
-
-    if (criteria.getFullname() != null &&
-        !studentDetail.getStudent().getFullname().contains(criteria.getFullname())) {
-      return false;
-    }
-
-    if (criteria.getFurigana() != null &&
-        !studentDetail.getStudent().getFurigana().contains(criteria.getFurigana())) {
-      return false;
-    }
-
-    if (criteria.getNickname() != null &&
-        !studentDetail.getStudent().getNickname().contains(criteria.getNickname())) {
-      return false;
-    }
-
-    if (criteria.getMail() != null &&
-        !studentDetail.getStudent().getMail().contains(criteria.getMail())) {
-      return false;
-    }
-
-    if (criteria.getAddress() != null &&
-        !studentDetail.getStudent().getAddress().contains(criteria.getAddress())) {
-      return false;
-    }
-
-    if (criteria.getMinAge() != null &&
-        studentDetail.getStudent().getAge() < criteria.getMinAge()) {
-      return false;
-    }
-
-    if (criteria.getMaxAge() != null &&
-        studentDetail.getStudent().getAge() > criteria.getMaxAge()) {
-      return false;
-    }
-
-    if (criteria.getGender() != null &&
-        studentDetail.getStudent().getGender() != criteria.getGender()) {
-      return false;
-    }
-
-    if (criteria.getDeleted() != null &&
-        studentDetail.getStudent().isDeleted() != criteria.getDeleted()) {
-      return false;
-    }
-
-    if (criteria.getCourseName() != null &&
-        studentDetail.getStudentCourses().stream()
-            .noneMatch(course -> course.getCourseName().contains(criteria.getCourseName()))) {
-      return false;
-    }
-
-    if (criteria.getStartDateFrom() != null &&
-        studentDetail.getStudentCourses().stream()
-            .noneMatch(course -> course.getStartDate().toLocalDate()
-                .isAfter(criteria.getStartDateFrom()))) {
-      return false;
-    }
-
-    if (criteria.getStartDateTo() != null &&
-        studentDetail.getStudentCourses().stream()
-            .noneMatch(course -> course.getStartDate().toLocalDate()
-                .isBefore(criteria.getStartDateTo()))) {
-      return false;
-    }
-
-    if (criteria.getEndDateFrom() != null &&
-        studentDetail.getStudentCourses().stream()
-            .noneMatch(course -> course.getEndDate().toLocalDate()
-                .isAfter(criteria.getEndDateFrom()))) {
-      return false;
-    }
-
-    if (criteria.getEndDateTo() != null &&
-        studentDetail.getStudentCourses().stream()
-            .noneMatch(course -> course.getEndDate().toLocalDate()
-                .isBefore(criteria.getEndDateTo()))) {
-      return false;
-    }
-
-    return true;
-
-  }
-
-  /**
    * 受講生コース詳細一覧検索です。 受講生コースの一覧とコース申込状況一覧をcourseConverterでコース詳細情報一覧に変換します。
-   * リクエストパラメータに申込状況を指定して絞り込み検索することができます。
+   * 指定されたリクエストパラメータの値に応じてフィルタリングを行います。
    *
    * @return コース詳細情報一覧
    */
@@ -159,58 +119,86 @@ public class StudentService {
         courseStatusesList);
 
     return courseDetails.stream()
-        .filter(courseDetail -> meetsCourseSearchCriteria(courseDetail, criteria))
+        .filter(courseDetail -> doesCourseNameContain(criteria.getCourseName(),
+            courseDetail.getStudentCourse().getCourseName()))
+
+        .filter(courseDetail -> isStartDateOnOrAfter(criteria.getStartDateFrom(),
+            courseDetail.getStudentCourse().getStartDate().toLocalDate()))
+
+        .filter(courseDetail -> isStartDateOnOrBefore(criteria.getStartDateTo(),
+            courseDetail.getStudentCourse().getStartDate().toLocalDate()))
+
+        .filter(courseDetail -> isEndDateOnOrAfter(criteria.getEndDateFrom(),
+            courseDetail.getStudentCourse().getEndDate().toLocalDate()))
+
+        .filter(courseDetail -> isEndDateOnOrBefore(criteria.getEndDateFrom(),
+            courseDetail.getStudentCourse().getEndDate().toLocalDate()))
+
+        .filter(courseDetail -> doesStatusMatch(criteria.getStatus(),
+            courseDetail.getCourseStatus().getStatus()))
+
         .toList();
 
   }
 
-  /**
-   * 受講生コース一覧検索を行う際のフィルタリングのロジックです。 指定された検索条件がコース詳細情報と合致しない場合、if文が実行され、falseを返します。
-   * 検索条件が指定されていない、もしくは指定された検索条件がコース詳細情報と合致している場合、if文は実行されず、スキップされます。 すべてのif文がスキップされた場合、trueを返します。
-   *
-   * @param courseDetail コースの詳細情報
-   * @param criteria     コースの検索条件
-   * @return 検索条件に合致したかどうかの真偽値
-   */
-  private boolean meetsCourseSearchCriteria(CourseDetail courseDetail,
-      CourseSearchCriteria criteria) {
+  private boolean doesFullnameContain(String criteriaFullname, String targetFullname) {
+    return criteriaFullname == null || targetFullname.contains(criteriaFullname);
+  }
 
-    if (criteria.getCourseName() != null &&
-        !courseDetail.getStudentCourse().getCourseName().contains(criteria.getCourseName())) {
-      return false;
-    }
+  private boolean doesFuriganaContain(String criteriaFurigana, String targetFurigana) {
+    return criteriaFurigana == null || targetFurigana.contains(criteriaFurigana);
+  }
 
-    if (criteria.getStartDateFrom() != null &&
-        !courseDetail.getStudentCourse().getStartDate().toLocalDate()
-            .isAfter(criteria.getStartDateFrom())) {
-      return false;
-    }
+  private boolean doesNicknameContain(String criteriaNickname, String targetNickname) {
+    return criteriaNickname == null || targetNickname.contains(criteriaNickname);
+  }
 
-    if (criteria.getStartDateTo() != null &&
-        !courseDetail.getStudentCourse().getStartDate().toLocalDate()
-            .isBefore(criteria.getStartDateTo())) {
-      return false;
-    }
+  private boolean doesMailContain(String criteriaMail, String targetMail) {
+    return criteriaMail == null || targetMail.contains(criteriaMail);
+  }
 
-    if (criteria.getEndDateFrom() != null &&
-        !courseDetail.getStudentCourse().getEndDate().toLocalDate()
-            .isAfter(criteria.getEndDateFrom())) {
-      return false;
-    }
+  private boolean doesAddressContain(String criteriaAddress, String targetAddress) {
+    return criteriaAddress == null || targetAddress.contains(criteriaAddress);
+  }
 
-    if (criteria.getEndDateTo() != null &&
-        !courseDetail.getStudentCourse().getEndDate().toLocalDate()
-            .isBefore(criteria.getEndDateTo())) {
-      return false;
-    }
+  private boolean isAgeAtLeast(Integer criteriaMinAge, Integer targetAge) {
+    return criteriaMinAge == null || targetAge >= criteriaMinAge;
+  }
 
-    if (criteria.getStatus() != null &&
-        courseDetail.getCourseStatus().getStatus() != criteria.getStatus()) {
-      return false;
-    }
+  private boolean isAgeLessThan(Integer criteriaMaxAge, Integer targetAge) {
+    return criteriaMaxAge == null || targetAge <= criteriaMaxAge;
+  }
 
-    return true;
+  private boolean doesGenderMatch(Gender criteriaGender, Gender targetGender) {
+    return criteriaGender == null || targetGender == criteriaGender;
+  }
 
+  private boolean isDeleted(Boolean criteriaDeleted, Boolean targetDeleted) {
+    return criteriaDeleted == null || targetDeleted == criteriaDeleted;
+  }
+
+  private boolean doesCourseNameContain(String criteriaCourseName, String targetCourseName) {
+    return criteriaCourseName == null || targetCourseName.contains(criteriaCourseName);
+  }
+
+  private boolean isStartDateOnOrAfter(LocalDate criteriaStartDateFrom, LocalDate targetStartDate) {
+    return criteriaStartDateFrom == null || targetStartDate.isAfter(criteriaStartDateFrom);
+  }
+
+  private boolean isStartDateOnOrBefore(LocalDate criteriaStartDateTo, LocalDate targetStartDate) {
+    return criteriaStartDateTo == null || targetStartDate.isAfter(criteriaStartDateTo);
+  }
+
+  private boolean isEndDateOnOrAfter(LocalDate criteriaEndDateFrom, LocalDate targetEndDate) {
+    return criteriaEndDateFrom == null || targetEndDate.isAfter(criteriaEndDateFrom);
+  }
+
+  private boolean isEndDateOnOrBefore(LocalDate criteriaEndDateTo, LocalDate targetEndDate) {
+    return criteriaEndDateTo == null || targetEndDate.isAfter(criteriaEndDateTo);
+  }
+
+  private boolean doesStatusMatch(Status criteriaStatus, Status targetStatus) {
+    return criteriaStatus == null || targetStatus == criteriaStatus;
   }
 
   /**
