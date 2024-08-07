@@ -50,57 +50,60 @@ public class StudentService {
         studentsCoursesList);
 
     return studentDetails.stream()
-        .filter(studentDetail -> doesFullnameContain(criteria.getFullname(),
-            studentDetail.getStudent().getFullname()))
+        .filter(
+            studentDetail -> doesStringContainSubstring(studentDetail.getStudent().getFullname(),
+                criteria.getFullname()))
 
-        .filter(studentDetail -> doesFuriganaContain(criteria.getFurigana(),
-            studentDetail.getStudent().getFurigana()))
+        .filter(
+            studentDetail -> doesStringContainSubstring(studentDetail.getStudent().getFurigana(),
+                criteria.getFurigana()))
 
-        .filter(studentDetail -> doesNicknameContain(criteria.getNickname(),
-            studentDetail.getStudent().getNickname()))
+        .filter(
+            studentDetail -> doesStringContainSubstring(studentDetail.getStudent().getNickname(),
+                criteria.getNickname()))
 
-        .filter(studentDetail -> doesMailContain(criteria.getMail(),
-            studentDetail.getStudent().getMail()))
+        .filter(studentDetail -> doesStringContainSubstring(studentDetail.getStudent().getMail(),
+            criteria.getMail()))
 
-        .filter(studentDetail -> doesAddressContain(criteria.getAddress(),
-            studentDetail.getStudent().getAddress()))
+        .filter(studentDetail -> doesStringContainSubstring(studentDetail.getStudent().getAddress(),
+            criteria.getAddress()))
 
-        .filter(studentDetail -> isAgeAtLeast(criteria.getMinAge(),
-            studentDetail.getStudent().getAge()))
+        .filter(studentDetail -> isIntegerMoreThan(studentDetail.getStudent().getAge(),
+            criteria.getMinAge()))
 
-        .filter(studentDetail -> isAgeLessThan(criteria.getMaxAge(),
-            studentDetail.getStudent().getAge()))
+        .filter(studentDetail -> isIntegerLessThan(studentDetail.getStudent().getAge(),
+            criteria.getMaxAge()))
 
-        .filter(studentDetail -> doesGenderMatch(criteria.getGender(),
-            studentDetail.getStudent().getGender()))
+        .filter(studentDetail -> isGenderMatching(studentDetail.getStudent().getGender(),
+            criteria.getGender()))
 
-        .filter(studentDetail -> isDeleted(criteria.getDeleted(),
-            studentDetail.getStudent().isDeleted()))
-
-        .filter(studentDetail -> studentDetail.getStudentCourses()
-            .stream()
-            .anyMatch(studentCourse -> doesCourseNameContain(criteria.getCourseName(),
-                studentCourse.getCourseName())))
+        .filter(studentDetail -> isBooleanEqual(studentDetail.getStudent().isDeleted(),
+            criteria.getDeleted()))
 
         .filter(studentDetail -> studentDetail.getStudentCourses()
             .stream()
-            .anyMatch(studentCourse -> isStartDateOnOrAfter(criteria.getStartDateFrom(),
-                studentCourse.getStartDate().toLocalDate())))
+            .anyMatch(studentCourse -> doesStringContainSubstring(studentCourse.getCourseName(),
+                criteria.getCourseName())))
 
         .filter(studentDetail -> studentDetail.getStudentCourses()
             .stream()
-            .anyMatch(studentCourse -> isStartDateOnOrBefore(criteria.getStartDateTo(),
-                studentCourse.getStartDate().toLocalDate())))
+            .anyMatch(studentCourse -> isDateOnOrAfter(studentCourse.getStartDate().toLocalDate(),
+                criteria.getStartDateFrom())))
 
         .filter(studentDetail -> studentDetail.getStudentCourses()
             .stream()
-            .anyMatch(studentCourse -> isEndDateOnOrAfter(criteria.getEndDateFrom(),
-                studentCourse.getEndDate().toLocalDate())))
+            .anyMatch(studentCourse -> isDateOnOrBefore(studentCourse.getStartDate().toLocalDate(),
+                criteria.getStartDateTo())))
 
         .filter(studentDetail -> studentDetail.getStudentCourses()
             .stream()
-            .anyMatch(studentCourse -> isEndDateOnOrBefore(criteria.getEndDateFrom(),
-                studentCourse.getStartDate().toLocalDate())))
+            .anyMatch(studentCourse -> isDateOnOrAfter(studentCourse.getEndDate().toLocalDate(),
+                criteria.getEndDateFrom())))
+
+        .filter(studentDetail -> studentDetail.getStudentCourses()
+            .stream()
+            .anyMatch(studentCourse -> isDateOnOrBefore(studentCourse.getStartDate().toLocalDate(),
+                criteria.getEndDateFrom())))
 
         .toList();
 
@@ -119,86 +122,62 @@ public class StudentService {
         courseStatusesList);
 
     return courseDetails.stream()
-        .filter(courseDetail -> doesCourseNameContain(criteria.getCourseName(),
-            courseDetail.getStudentCourse().getCourseName()))
+        .filter(courseDetail -> doesStringContainSubstring(
+            courseDetail.getStudentCourse().getCourseName(), criteria.getCourseName()))
 
-        .filter(courseDetail -> isStartDateOnOrAfter(criteria.getStartDateFrom(),
-            courseDetail.getStudentCourse().getStartDate().toLocalDate()))
+        .filter(courseDetail -> isDateOnOrAfter(
+            courseDetail.getStudentCourse().getStartDate().toLocalDate(),
+            criteria.getStartDateFrom()))
 
-        .filter(courseDetail -> isStartDateOnOrBefore(criteria.getStartDateTo(),
-            courseDetail.getStudentCourse().getStartDate().toLocalDate()))
+        .filter(courseDetail -> isDateOnOrBefore(
+            courseDetail.getStudentCourse().getStartDate().toLocalDate(),
+            criteria.getStartDateTo()))
 
-        .filter(courseDetail -> isEndDateOnOrAfter(criteria.getEndDateFrom(),
-            courseDetail.getStudentCourse().getEndDate().toLocalDate()))
+        .filter(courseDetail -> isDateOnOrAfter(
+            courseDetail.getStudentCourse().getEndDate().toLocalDate(),
+            criteria.getEndDateFrom()))
 
-        .filter(courseDetail -> isEndDateOnOrBefore(criteria.getEndDateFrom(),
-            courseDetail.getStudentCourse().getEndDate().toLocalDate()))
+        .filter(courseDetail -> isDateOnOrBefore(
+            courseDetail.getStudentCourse().getEndDate().toLocalDate(),
+            criteria.getEndDateFrom()))
 
-        .filter(courseDetail -> doesStatusMatch(criteria.getStatus(),
-            courseDetail.getCourseStatus().getStatus()))
+        .filter(courseDetail -> isStatusMatching(courseDetail.getCourseStatus().getStatus(),
+            criteria.getStatus()))
 
         .toList();
 
   }
 
-  private boolean doesFullnameContain(String criteriaFullname, String targetFullname) {
-    return criteriaFullname == null || targetFullname.contains(criteriaFullname);
+  private boolean doesStringContainSubstring(String targetValue, String criteriaValue) {
+    return criteriaValue == null || targetValue.contains(criteriaValue);
   }
 
-  private boolean doesFuriganaContain(String criteriaFurigana, String targetFurigana) {
-    return criteriaFurigana == null || targetFurigana.contains(criteriaFurigana);
+  private boolean isIntegerMoreThan(Integer targetValue, Integer criteriaValue) {
+    return criteriaValue == null || targetValue >= criteriaValue;
   }
 
-  private boolean doesNicknameContain(String criteriaNickname, String targetNickname) {
-    return criteriaNickname == null || targetNickname.contains(criteriaNickname);
+  private boolean isIntegerLessThan(Integer targetValue, Integer criteriaValue) {
+    return criteriaValue == null || targetValue <= criteriaValue;
   }
 
-  private boolean doesMailContain(String criteriaMail, String targetMail) {
-    return criteriaMail == null || targetMail.contains(criteriaMail);
+  private boolean isBooleanEqual(Boolean targetValue, Boolean criteriaValue) {
+    return criteriaValue == null || targetValue == criteriaValue;
   }
 
-  private boolean doesAddressContain(String criteriaAddress, String targetAddress) {
-    return criteriaAddress == null || targetAddress.contains(criteriaAddress);
+  private boolean isDateOnOrAfter(LocalDate targetDate, LocalDate criteriaDate) {
+    return criteriaDate == null || targetDate.isAfter(criteriaDate);
   }
 
-  private boolean isAgeAtLeast(Integer criteriaMinAge, Integer targetAge) {
-    return criteriaMinAge == null || targetAge >= criteriaMinAge;
+  private boolean isDateOnOrBefore(LocalDate targetDate, LocalDate criteriaDate) {
+    return criteriaDate == null || targetDate.isBefore(criteriaDate);
   }
 
-  private boolean isAgeLessThan(Integer criteriaMaxAge, Integer targetAge) {
-    return criteriaMaxAge == null || targetAge <= criteriaMaxAge;
+  private boolean isGenderMatching(Gender targetValue, Gender criteriaValue) {
+    return criteriaValue == null || targetValue == criteriaValue;
   }
 
-  private boolean doesGenderMatch(Gender criteriaGender, Gender targetGender) {
-    return criteriaGender == null || targetGender == criteriaGender;
-  }
-
-  private boolean isDeleted(Boolean criteriaDeleted, Boolean targetDeleted) {
-    return criteriaDeleted == null || targetDeleted == criteriaDeleted;
-  }
-
-  private boolean doesCourseNameContain(String criteriaCourseName, String targetCourseName) {
-    return criteriaCourseName == null || targetCourseName.contains(criteriaCourseName);
-  }
-
-  private boolean isStartDateOnOrAfter(LocalDate criteriaStartDateFrom, LocalDate targetStartDate) {
-    return criteriaStartDateFrom == null || targetStartDate.isAfter(criteriaStartDateFrom);
-  }
-
-  private boolean isStartDateOnOrBefore(LocalDate criteriaStartDateTo, LocalDate targetStartDate) {
-    return criteriaStartDateTo == null || targetStartDate.isAfter(criteriaStartDateTo);
-  }
-
-  private boolean isEndDateOnOrAfter(LocalDate criteriaEndDateFrom, LocalDate targetEndDate) {
-    return criteriaEndDateFrom == null || targetEndDate.isAfter(criteriaEndDateFrom);
-  }
-
-  private boolean isEndDateOnOrBefore(LocalDate criteriaEndDateTo, LocalDate targetEndDate) {
-    return criteriaEndDateTo == null || targetEndDate.isAfter(criteriaEndDateTo);
-  }
-
-  private boolean doesStatusMatch(Status criteriaStatus, Status targetStatus) {
-    return criteriaStatus == null || targetStatus == criteriaStatus;
+  private boolean isStatusMatching(Status criteriaValue, Status targetValue) {
+    return criteriaValue == null || targetValue == criteriaValue;
   }
 
   /**
