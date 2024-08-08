@@ -13,12 +13,15 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import raisetech.student.management.model.data.CourseSearchCriteria;
 import raisetech.student.management.model.data.CourseStatus;
+import raisetech.student.management.model.data.StudentSearchCriteria;
 import raisetech.student.management.model.domain.CourseDetail;
 import raisetech.student.management.model.domain.IntegratedDetail;
 import raisetech.student.management.model.domain.StudentDetail;
@@ -40,9 +43,10 @@ public class StudentController {
   }
 
   /**
-   * 受講生一覧検索です。 リクエストパラメータを指定しなければ全件検索を行います。
-   * リクエストパラメータでdeletedの値を指定することにより、現在の受講生または過去の受講生に絞って検索できます。
+   * 受講生一覧検索です。リクエストパラメータを指定することにより、絞りこみ検索できます。
+   * ModelAttributeアノテーションによりStudentSearchCriteriaにリクエストパラメータがバインドされ、パラメータの入力は任意となります。
    *
+   * @param criteria フィルタリングの基準値（＝検索条件）
    * @return 受講生詳細情報一覧
    */
   @Operation(summary = "受講生一覧検索", description = "条件に合致する受講生の一覧を検索します。")
@@ -54,10 +58,9 @@ public class StudentController {
       )
   })
   @GetMapping("/students")
-  public List<StudentDetail> getStudentList(
-      @Parameter(description = "受講生の削除フラグ") @RequestParam(required = false) Boolean deleted) {
+  public List<StudentDetail> getStudentList(@Valid @ModelAttribute StudentSearchCriteria criteria) {
 
-    return service.searchStudentList(deleted);
+    return service.searchStudentList(criteria);
 
   }
 
@@ -75,9 +78,10 @@ public class StudentController {
       )
   })
   @GetMapping("/students/courses")
-  public List<CourseDetail> getStudentCoursesList() {
+  public List<CourseDetail> getStudentCoursesList(
+      @Valid @ModelAttribute CourseSearchCriteria criteria) {
 
-    return service.searchStudentCourseList();
+    return service.searchStudentCourseList(criteria);
 
   }
 

@@ -1,5 +1,6 @@
 package raisetech.student.management.model.services;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,9 +8,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import raisetech.student.management.model.converter.CourseConverter;
 import raisetech.student.management.model.converter.StudentConverter;
+import raisetech.student.management.model.data.CourseSearchCriteria;
 import raisetech.student.management.model.data.CourseStatus;
+import raisetech.student.management.model.data.Gender;
+import raisetech.student.management.model.data.Status;
 import raisetech.student.management.model.data.Student;
 import raisetech.student.management.model.data.StudentCourse;
+import raisetech.student.management.model.data.StudentSearchCriteria;
 import raisetech.student.management.model.domain.CourseDetail;
 import raisetech.student.management.model.domain.IntegratedDetail;
 import raisetech.student.management.model.domain.StudentDetail;
@@ -38,31 +43,141 @@ public class StudentService {
    *
    * @return 受講生詳細情報一覧
    */
-  public List<StudentDetail> searchStudentList(
-      Boolean deleted) {
+  public List<StudentDetail> searchStudentList(StudentSearchCriteria criteria) {
     List<Student> students = repository.searchStudents();
     List<StudentCourse> studentsCoursesList = repository.searchStudentCoursesList();
     List<StudentDetail> studentDetails = studentConverter.convertStudentDetails(students,
         studentsCoursesList);
 
     return studentDetails.stream()
-        .filter(studentDetail ->
-            deleted == null || studentDetail.getStudent().isDeleted() == deleted)
+        .filter(
+            studentDetail -> doesStringContainSubstring(studentDetail.getStudent().getFullname(),
+                criteria.getFullname()))
+
+        .filter(
+            studentDetail -> doesStringContainSubstring(studentDetail.getStudent().getFurigana(),
+                criteria.getFurigana()))
+
+        .filter(
+            studentDetail -> doesStringContainSubstring(studentDetail.getStudent().getNickname(),
+                criteria.getNickname()))
+
+        .filter(studentDetail -> doesStringContainSubstring(studentDetail.getStudent().getMail(),
+            criteria.getMail()))
+
+        .filter(studentDetail -> doesStringContainSubstring(studentDetail.getStudent().getAddress(),
+            criteria.getAddress()))
+
+        .filter(studentDetail -> isIntegerMoreThan(studentDetail.getStudent().getAge(),
+            criteria.getMinAge()))
+
+        .filter(studentDetail -> isIntegerLessThan(studentDetail.getStudent().getAge(),
+            criteria.getMaxAge()))
+
+        .filter(studentDetail -> isGenderMatching(studentDetail.getStudent().getGender(),
+            criteria.getGender()))
+
+        .filter(studentDetail -> isBooleanEqual(studentDetail.getStudent().isDeleted(),
+            criteria.getDeleted()))
+
+        .filter(studentDetail -> studentDetail.getStudentCourses()
+            .stream()
+            .anyMatch(studentCourse -> doesStringContainSubstring(studentCourse.getCourseName(),
+                criteria.getCourseName())))
+
+        .filter(studentDetail -> studentDetail.getStudentCourses()
+            .stream()
+            .anyMatch(studentCourse -> isDateOnOrAfter(studentCourse.getStartDate().toLocalDate(),
+                criteria.getStartDateFrom())))
+
+        .filter(studentDetail -> studentDetail.getStudentCourses()
+            .stream()
+            .anyMatch(studentCourse -> isDateOnOrBefore(studentCourse.getStartDate().toLocalDate(),
+                criteria.getStartDateTo())))
+
+        .filter(studentDetail -> studentDetail.getStudentCourses()
+            .stream()
+            .anyMatch(studentCourse -> isDateOnOrAfter(studentCourse.getEndDate().toLocalDate(),
+                criteria.getEndDateFrom())))
+
+        .filter(studentDetail -> studentDetail.getStudentCourses()
+            .stream()
+            .anyMatch(studentCourse -> isDateOnOrBefore(studentCourse.getStartDate().toLocalDate(),
+                criteria.getEndDateFrom())))
+
         .toList();
 
   }
 
   /**
    * 受講生コース詳細一覧検索です。 受講生コースの一覧とコース申込状況一覧をcourseConverterでコース詳細情報一覧に変換します。
+   * 指定されたリクエストパラメータの値に応じてフィルタリングを行います。
    *
    * @return コース詳細情報一覧
    */
-  public List<CourseDetail> searchStudentCourseList() {
+  public List<CourseDetail> searchStudentCourseList(CourseSearchCriteria criteria) {
     List<StudentCourse> studentCoursesList = repository.searchStudentCoursesList();
     List<CourseStatus> courseStatusesList = repository.searchCourseStatusList();
+    List<CourseDetail> courseDetails = courseConverter.convertCourseDetails(studentCoursesList,
+        courseStatusesList);
 
-    return courseConverter.convertCourseDetails(studentCoursesList, courseStatusesList);
+    return courseDetails.stream()
+        .filter(courseDetail -> doesStringContainSubstring(
+            courseDetail.getStudentCourse().getCourseName(), criteria.getCourseName()))
 
+        .filter(courseDetail -> isDateOnOrAfter(
+            courseDetail.getStudentCourse().getStartDate().toLocalDate(),
+            criteria.getStartDateFrom()))
+
+        .filter(courseDetail -> isDateOnOrBefore(
+            courseDetail.getStudentCourse().getStartDate().toLocalDate(),
+            criteria.getStartDateTo()))
+
+        .filter(courseDetail -> isDateOnOrAfter(
+            courseDetail.getStudentCourse().getEndDate().toLocalDate(),
+            criteria.getEndDateFrom()))
+
+        .filter(courseDetail -> isDateOnOrBefore(
+            courseDetail.getStudentCourse().getEndDate().toLocalDate(),
+            criteria.getEndDateFrom()))
+
+        .filter(courseDetail -> isStatusMatching(courseDetail.getCourseStatus().getStatus(),
+            criteria.getStatus()))
+
+        .toList();
+
+  }
+
+  private boolean doesStringContainSubstring(String targetValue, String criteriaValue) {
+    return criteriaValue == null || targetValue.contains(criteriaValue);
+  }
+
+  private boolean isIntegerMoreThan(Integer targetValue, Integer criteriaValue) {
+    return criteriaValue == null || targetValue >= criteriaValue;
+  }
+
+  private boolean isIntegerLessThan(Integer targetValue, Integer criteriaValue) {
+    return criteriaValue == null || targetValue <= criteriaValue;
+  }
+
+  private boolean isBooleanEqual(Boolean targetValue, Boolean criteriaValue) {
+    return criteriaValue == null || targetValue == criteriaValue;
+  }
+
+  private boolean isDateOnOrAfter(LocalDate targetDate, LocalDate criteriaDate) {
+    return criteriaDate == null || targetDate.isAfter(criteriaDate);
+  }
+
+  private boolean isDateOnOrBefore(LocalDate targetDate, LocalDate criteriaDate) {
+    return criteriaDate == null || targetDate.isBefore(criteriaDate);
+  }
+
+  private boolean isGenderMatching(Gender targetValue, Gender criteriaValue) {
+    return criteriaValue == null || targetValue == criteriaValue;
+  }
+
+  private boolean isStatusMatching(Status criteriaValue, Status targetValue) {
+    return criteriaValue == null || targetValue == criteriaValue;
   }
 
   /**

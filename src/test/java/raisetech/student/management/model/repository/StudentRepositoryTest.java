@@ -41,7 +41,7 @@ class StudentRepositoryTest {
   }
 
   /**
-   * テスト用に受講生のオブジェクトを生成するメソッドです。
+   * テスト用に受講生コースのオブジェクトを生成するメソッドです。
    *
    * @param student 受講生
    * @return 受講生コース
