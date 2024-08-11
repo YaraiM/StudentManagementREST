@@ -55,6 +55,11 @@ public class StudentController {
           content = @Content(mediaType = "application/json",
               array = @ArraySchema(schema = @Schema(implementation = StudentDetail.class))
           )
+      ),
+      @ApiResponse(responseCode = "400", description = "無効な検索条件を指定した場合のレスポンス",
+          content = @Content(mediaType = "application/json",
+              array = @ArraySchema(schema = @Schema(implementation = ErrorResponse.class))
+          )
       )
   })
   @GetMapping("/students")
@@ -141,6 +146,11 @@ public class StudentController {
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "処理が成功した場合のレスポンス",
           content = @Content(mediaType = "application/json", schema = @Schema(implementation = IntegratedDetail.class))
+      ),
+      @ApiResponse(responseCode = "400", description = "登録情報に無効な入力形式の値を指定した場合のレスポンス",
+          content = @Content(mediaType = "application/json",
+              array = @ArraySchema(schema = @Schema(implementation = ErrorResponse.class))
+          )
       )
   })
   @PostMapping("/students/new")
@@ -160,6 +170,11 @@ public class StudentController {
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "処理が成功した場合のレスポンス",
           content = @Content(mediaType = "text/plain", schema = @Schema(type = "string", example = "更新処理が成功しました"))
+      ),
+      @ApiResponse(responseCode = "400", description = "登録情報に無効な入力形式の値を指定した場合のレスポンス",
+          content = @Content(mediaType = "application/json",
+              array = @ArraySchema(schema = @Schema(implementation = ErrorResponse.class))
+          )
       )
   })
   @PutMapping("/students/update")
@@ -178,6 +193,11 @@ public class StudentController {
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "処理が成功した場合のレスポンス",
           content = @Content(mediaType = "text/plain", schema = @Schema(type = "string", example = "更新処理が成功しました"))
+      ),
+      @ApiResponse(responseCode = "400", description = "登録情報に無効な入力形式の値を指定した場合のレスポンス",
+          content = @Content(mediaType = "application/json",
+              array = @ArraySchema(schema = @Schema(implementation = ErrorResponse.class))
+          )
       )
   })
   @PutMapping("/students/courses/statuses/update")
