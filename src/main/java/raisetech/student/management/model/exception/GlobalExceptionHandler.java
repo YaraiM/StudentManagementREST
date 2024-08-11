@@ -32,7 +32,8 @@ public class GlobalExceptionHandler {
       errors.add(error);
     });
 
-    ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, "validation error",
+    ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST,
+        "バリデーションエラーです。",
         errors);
 
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
@@ -56,7 +57,7 @@ public class GlobalExceptionHandler {
 
   /**
    * 存在しないIDをパラメータ指定した場合に例外処理を行うメソッドです。（検査例外）
-   * ResourceNotFoundExceptionがスローされたとき、ステータスコード404（NotFound）および指定した例外メッセージを返します。
+   * ResourceNotFoundExceptionがスローされたとき、ステータス（NotFound）および指定した例外メッセージを返します。
    *
    * @param ex 例外クラス（リソースが存在しない）
    * @return エラーレスポンス
