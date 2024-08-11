@@ -377,7 +377,8 @@ class StudentServiceTest {
   }
 
   @Test
-  void 受講生詳細情報の更新_リポジトリの処理を適切に呼び出していること() {
+  void 受講生詳細情報の更新_リポジトリの処理を適切に呼び出していること()
+      throws ResourceNotFoundException {
     // 事前準備
     Student student = new Student();
 
@@ -402,7 +403,8 @@ class StudentServiceTest {
   }
 
   @Test
-  void コース申込状況の更新_リポジトリの処理を適切に呼び出していること() {
+  void コース申込状況の更新_リポジトリの処理を適切に呼び出していること()
+      throws ResourceNotFoundException {
     // 事前準備
     CourseStatus courseStatus = new CourseStatus();
 

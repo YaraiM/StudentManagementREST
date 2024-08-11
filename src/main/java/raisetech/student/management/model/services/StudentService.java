@@ -272,9 +272,22 @@ public class StudentService {
    * @param studentDetail 更新される受講生の詳細情報
    */
   @Transactional
-  public void updateStudent(StudentDetail studentDetail) {
+  public void updateStudent(StudentDetail studentDetail) throws ResourceNotFoundException {
+    int studentId = studentDetail.getStudent().getId();
+    if (repository.searchStudent(studentId) == null) {
+      throw new ResourceNotFoundException("受講生ID 「" + studentId + "」は存在しません");
+    }
+
+    for (StudentCourse studentCourse : studentDetail.getStudentCourses()) {
+      if (repository.searchStudentCourse(studentCourse.getId()) == null) {
+        throw new ResourceNotFoundException(
+            "受講生コースID 「" + studentCourse.getId() + "」は存在しません");
+      }
+    }
+
     repository.updateStudent(studentDetail.getStudent());
     studentDetail.getStudentCourses().forEach(repository::updateStudentCourses);
+
   }
 
   /**
@@ -283,7 +296,11 @@ public class StudentService {
    * @param courseStatus コース申込状況
    */
   @Transactional
-  public void updateCourseStatus(CourseStatus courseStatus) {
+  public void updateCourseStatus(CourseStatus courseStatus) throws ResourceNotFoundException {
+    if (repository.searchStudentCourse(courseStatus.getCourseId()) == null) {
+      throw new ResourceNotFoundException(
+          "受講生コースID 「" + courseStatus.getCourseId() + "」は存在しません");
+    }
     repository.updateCourseStatus(courseStatus);
   }
 

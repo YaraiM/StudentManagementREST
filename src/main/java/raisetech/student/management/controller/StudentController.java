@@ -175,10 +175,14 @@ public class StudentController {
           content = @Content(mediaType = "application/json",
               array = @ArraySchema(schema = @Schema(implementation = ErrorResponse.class))
           )
+      ),
+      @ApiResponse(responseCode = "404", description = "存在しないIDを指定した場合のレスポンス",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
       )
   })
   @PutMapping("/students/update")
-  public ResponseEntity<String> updateStudent(@RequestBody @Valid StudentDetail studentDetail) {
+  public ResponseEntity<String> updateStudent(@RequestBody @Valid StudentDetail studentDetail)
+      throws ResourceNotFoundException {
     service.updateStudent(studentDetail);
     return ResponseEntity.ok("更新処理が成功しました");
   }
@@ -198,10 +202,14 @@ public class StudentController {
           content = @Content(mediaType = "application/json",
               array = @ArraySchema(schema = @Schema(implementation = ErrorResponse.class))
           )
+      ),
+      @ApiResponse(responseCode = "404", description = "存在しないIDを指定した場合のレスポンス",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
       )
   })
   @PutMapping("/students/courses/statuses/update")
-  public ResponseEntity<String> updateStudentCourse(@RequestBody @Valid CourseStatus courseStatus) {
+  public ResponseEntity<String> updateStudentCourse(@RequestBody @Valid CourseStatus courseStatus)
+      throws ResourceNotFoundException {
     service.updateCourseStatus(courseStatus);
     return ResponseEntity.ok("更新処理が成功しました");
   }
