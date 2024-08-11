@@ -227,8 +227,7 @@ class StudentServiceTest {
   }
 
   @Test
-  void 受講生詳細の検索_正常系_リポジトリの処理を適切に呼び出して受講生IDに紐づく受講生情報と受講生コース情報が返ってくること()
-      throws ResourceNotFoundException {
+  void 受講生詳細の検索_正常系_リポジトリの処理を適切に呼び出して受講生IDに紐づく受講生情報と受講生コース情報が返ってくること() {
     // 事前準備
     int id = 1;
     Student student = new Student();
@@ -263,8 +262,7 @@ class StudentServiceTest {
   }
 
   @Test
-  void 受講生詳細の検索_異常系_存在しない受講生IDをメソッドに渡した場合に例外がスローされること()
-      throws ResourceNotFoundException {
+  void 受講生詳細の検索_異常系_存在しない受講生IDをメソッドに渡した場合に例外がスローされること() {
     // 事前準備
     int id = 777;
     Student student = new Student();
@@ -278,8 +276,7 @@ class StudentServiceTest {
   }
 
   @Test
-  void 受講生コース詳細の検索_正常系_リポジトリの処理を適切に呼び出して受講生コースIDに紐づくコース申込状況と受講生コース情報が返ってくること()
-      throws ResourceNotFoundException {
+  void 受講生コース詳細の検索_正常系_リポジトリの処理を適切に呼び出して受講生コースIDに紐づくコース申込状況と受講生コース情報が返ってくること() {
 
     int id = 555;
     StudentCourse studentCourse = new StudentCourse();
@@ -305,8 +302,7 @@ class StudentServiceTest {
   }
 
   @Test
-  void 受講生コース詳細の検索_異常系_存在しない受講生コースIDをメソッドに渡した場合に例外がスローされること()
-      throws ResourceNotFoundException {
+  void 受講生コース詳細の検索_異常系_存在しない受講生コースIDをメソッドに渡した場合に例外がスローされること() {
     // 事前準備
     int id = 777;
     StudentCourse studentCourse = new StudentCourse();
@@ -377,8 +373,7 @@ class StudentServiceTest {
   }
 
   @Test
-  void 受講生詳細情報の更新_リポジトリの処理を適切に呼び出していること()
-      throws ResourceNotFoundException {
+  void 受講生詳細情報の更新_リポジトリの処理を適切に呼び出していること() {
     // 事前準備
     Student student = new Student();
 
@@ -403,8 +398,7 @@ class StudentServiceTest {
   }
 
   @Test
-  void コース申込状況の更新_リポジトリの処理を適切に呼び出していること()
-      throws ResourceNotFoundException {
+  void コース申込状況の更新_リポジトリの処理を適切に呼び出していること() {
     // 事前準備
     CourseStatus courseStatus = new CourseStatus();
 
