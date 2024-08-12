@@ -140,7 +140,7 @@ public class StudentService {
 
         .filter(courseDetail -> isDateOnOrBefore(
             courseDetail.getStudentCourse().getEndDate().toLocalDate(),
-            criteria.getEndDateFrom()))
+            criteria.getEndDateTo()))
 
         .filter(courseDetail -> isStatusMatching(courseDetail.getCourseStatus().getStatus(),
             criteria.getStatus()))
@@ -177,7 +177,7 @@ public class StudentService {
     return criteriaValue == null || targetValue == criteriaValue;
   }
 
-  private boolean isStatusMatching(Status criteriaValue, Status targetValue) {
+  private boolean isStatusMatching(Status targetValue, Status criteriaValue) {
     return criteriaValue == null || targetValue == criteriaValue;
   }
 

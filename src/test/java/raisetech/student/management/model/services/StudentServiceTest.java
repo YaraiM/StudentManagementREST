@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -37,6 +38,7 @@ import raisetech.student.management.model.data.StudentSearchCriteria;
 import raisetech.student.management.model.domain.CourseDetail;
 import raisetech.student.management.model.domain.IntegratedDetail;
 import raisetech.student.management.model.domain.StudentDetail;
+import raisetech.student.management.model.exception.EmailAlreadyExistsException;
 import raisetech.student.management.model.exception.ResourceNotFoundException;
 import raisetech.student.management.model.repository.StudentRepository;
 
@@ -316,7 +318,7 @@ class StudentServiceTest {
   }
 
   @Test
-  void 受講生詳細情報の新規登録_リポジトリの処理を適切に呼び出したうえで受講生コース情報の初期情報が登録されコース申込状況が適切にインスタンス化されていること() {
+  void 受講生詳細情報の新規登録_正常系_リポジトリの処理を適切に呼び出したうえで受講生コース情報の初期情報が登録されコース申込状況が適切にインスタンス化されていること() {
     // 事前準備
     int studentId = 0;
     int courseId1 = 1;
@@ -373,17 +375,48 @@ class StudentServiceTest {
   }
 
   @Test
-  void 受講生詳細情報の更新_リポジトリの処理を適切に呼び出していること() {
+  void 受講生詳細情報の新規登録_異常系_存在するメールアドレスを登録しようとしたときに例外をスローすること() {
+    // 事前準備:新規登録する受講生情報の作成
+    Student student = new Student();
+    student.setMail("test@example.com");
+
+    StudentCourse studentCourse = new StudentCourse();
+    List<StudentCourse> studentCourses = new ArrayList<>();
+    studentCourses.add(studentCourse);
+
+    StudentDetail studentDetail = new StudentDetail(student, studentCourses);
+
+    // 事前準備:DB上の受講生情報の作成
+    Student studentAtDb = new Student();
+    studentAtDb.setMail("test@example.com");
+    List<Student> studentsAtDb = new ArrayList<>();
+    studentsAtDb.add(studentAtDb);
+
+    when(repository.searchStudents()).thenReturn(studentsAtDb);
+
+    // 実行と検証
+    assertThrows(EmailAlreadyExistsException.class, () -> sut.registerStudent(studentDetail));
+
+    // 検証
+    verify(repository, never()).registerStudent(student);
+    verify(repository, never()).registerStudentCourses(any(StudentCourse.class));
+    verify(repository, never()).registerCourseStatus(any(CourseStatus.class));
+
+  }
+
+  @Test
+  void 受講生詳細情報の更新_正常系_存在する受講生IDを指定したときにリポジトリの処理を適切に呼び出していること() {
     // 事前準備
     Student student = new Student();
 
+    StudentCourse studentCourse = new StudentCourse();
     List<StudentCourse> studentCourses = new ArrayList<>();
-    StudentCourse studentCourse1 = new StudentCourse();
-    StudentCourse studentCourse2 = new StudentCourse();
-    studentCourses.add(studentCourse1);
-    studentCourses.add(studentCourse2);
+    studentCourses.add(studentCourse);
 
     StudentDetail studentDetail = new StudentDetail(student, studentCourses);
+
+    when(repository.searchStudent(anyInt())).thenReturn(student);
+    when(repository.searchStudentCourse(anyInt())).thenReturn(studentCourse);
 
     doNothing().when(repository).updateStudent(any(Student.class));
     doNothing().when(repository).updateStudentCourses(any(StudentCourse.class));
@@ -392,23 +425,93 @@ class StudentServiceTest {
     sut.updateStudent(studentDetail);
 
     // 検証
+    verify(repository, times(1)).searchStudent(anyInt());
+    verify(repository, times(studentCourses.size())).searchStudentCourse(anyInt());
     verify(repository, times(1)).updateStudent(student);
-    verify(repository, times(2)).updateStudentCourses(any(StudentCourse.class));
+    verify(repository, times(studentCourses.size())).updateStudentCourses(studentCourse);
 
   }
 
   @Test
-  void コース申込状況の更新_リポジトリの処理を適切に呼び出していること() {
+  void 受講生詳細情報の更新_異常系_存在しない受講生IDを指定したときに例外をスローすること() {
     // 事前準備
+    Student student = new Student();
+
+    StudentCourse studentCourse = new StudentCourse();
+    List<StudentCourse> studentCourses = new ArrayList<>();
+    studentCourses.add(studentCourse);
+
+    StudentDetail studentDetail = new StudentDetail(student, studentCourses);
+
+    when(repository.searchStudent(anyInt())).thenReturn(null);
+
+    // 実行と検証
+    assertThrows(ResourceNotFoundException.class, () -> sut.updateStudent(studentDetail));
+
+    // 検証
+    verify(repository, times(1)).searchStudent(anyInt());
+    verify(repository, never()).searchStudentCourse(anyInt());
+    verify(repository, never()).updateStudent(student);
+    verify(repository, never()).updateStudentCourses(studentCourse);
+
+  }
+
+  @Test
+  void 受講生詳細情報の更新_異常系_存在しない受講生コースIDを指定したときに例外をスローすること() {
+    // 事前準備
+    Student student = new Student();
+
+    StudentCourse studentCourse = new StudentCourse();
+    List<StudentCourse> studentCourses = new ArrayList<>();
+    studentCourses.add(studentCourse);
+
+    StudentDetail studentDetail = new StudentDetail(student, studentCourses);
+
+    when(repository.searchStudent(anyInt())).thenReturn(student);
+    when(repository.searchStudentCourse(anyInt())).thenReturn(null);
+
+    // 実行と検証
+    assertThrows(ResourceNotFoundException.class, () -> sut.updateStudent(studentDetail));
+
+    // 検証
+    verify(repository, times(1)).searchStudent(anyInt());
+    verify(repository, times(studentCourses.size())).searchStudentCourse(anyInt());
+    verify(repository, never()).updateStudent(student);
+    verify(repository, never()).updateStudentCourses(studentCourse);
+
+  }
+
+  @Test
+  void コース申込状況の更新_正常系_存在する受講生コースIDを指定したときにリポジトリの処理を適切に呼び出していること() {
+    // 事前準備
+    StudentCourse studentCourse = new StudentCourse();
     CourseStatus courseStatus = new CourseStatus();
 
+    when(repository.searchStudentCourse(courseStatus.getCourseId())).thenReturn(studentCourse);
     doNothing().when(repository).updateCourseStatus(any(CourseStatus.class));
 
     // 実行
     sut.updateCourseStatus(courseStatus);
 
     // 検証
+    verify(repository, times(1)).searchStudentCourse(courseStatus.getCourseId());
     verify(repository, times(1)).updateCourseStatus(courseStatus);
+
+  }
+
+  @Test
+  void コース申込状況の更新_異常系_存在しない受講生コースIDを指定したときに例外をスローすること() {
+    // 事前準備
+    CourseStatus courseStatus = new CourseStatus();
+
+    when(repository.searchStudentCourse(courseStatus.getCourseId())).thenReturn(null);
+
+    // 実行と検証
+    assertThrows(ResourceNotFoundException.class, () -> sut.updateCourseStatus(courseStatus));
+
+    // 検証
+    verify(repository, times(1)).searchStudentCourse(courseStatus.getCourseId());
+    verify(repository, never()).updateCourseStatus(courseStatus);
 
   }
 
