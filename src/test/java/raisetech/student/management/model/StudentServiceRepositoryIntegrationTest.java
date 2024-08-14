@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static raisetech.student.management.model.data.Gender.男性;
+import static raisetech.student.management.model.data.Status.仮申込;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -105,7 +106,7 @@ public class StudentServiceRepositoryIntegrationTest {
             LocalDate.of(2024, 3, 1),
             LocalDate.of(2024, 5, 1),
             LocalDate.of(2024, 6, 1),
-            LocalDate.of(2024, 8, 2), Status.仮申込), 1),
+            LocalDate.of(2024, 8, 2), 仮申込), 1),
         // すべてのリクエストパラメータを入力し、条件に合致するものが一つも存在しないケース。
         Arguments.of(new CourseSearchCriteria("Java",
             LocalDate.of(2024, 6, 1),
@@ -153,6 +154,34 @@ public class StudentServiceRepositoryIntegrationTest {
   void 受講生詳細の検索_異常系_存在しない受講生IDをメソッドに渡した場合に例外がスローされること() {
     // 実行と検証
     assertThrows(ResourceNotFoundException.class, () -> sut.searchStudent(999));
+
+  }
+
+  @Test
+  void 受講生コース詳細の検索_正常系_受講生コースIDに紐づくコース申込状況と受講生コース情報が返ってくること() {
+
+    // 実行
+    CourseDetail actual = sut.searchStudentCourse(1);
+
+    // 検証
+    assertNotNull(actual);
+
+    assertEquals(1, actual.getStudentCourse().getStudentId());
+    assertEquals("Java", actual.getStudentCourse().getCourseName());
+    assertEquals(LocalDateTime.of(2024, 4, 1, 9, 0, 0),
+        actual.getStudentCourse().getStartDate());
+    assertEquals(LocalDateTime.of(2024, 7, 31, 17, 0, 0),
+        actual.getStudentCourse().getEndDate());
+
+    assertEquals(1, actual.getCourseStatus().getCourseId());
+    assertEquals(仮申込, actual.getCourseStatus().getStatus());
+
+  }
+
+  @Test
+  void 受講生コース詳細の検索_異常系_存在しない受講生コースIDをメソッドに渡した場合に例外がスローされること() {
+    // 実行と検証
+    assertThrows(ResourceNotFoundException.class, () -> sut.searchStudentCourse(999));
 
   }
 
