@@ -1,10 +1,10 @@
-INSERT INTO students (fullname, furigana, nickname, mail, address, age, gender, remark)
+INSERT INTO students (fullname, furigana, nickname, mail, address, age, gender, deleted, remark)
 VALUES
-('山田太郎', 'ヤマダタロウ', 'たろう', 'taro.yamada@example.com', '東京都', 20, '男性', NULL),
-('佐藤花子', 'サトウハナコ', 'はなちゃん', 'hanako.sato@example.com', '大阪府', 32, '女性', NULL),
-('鈴木一郎', 'スズキイチロウ', NULL, 'ichiro.suzuki@example.com', '愛知県', 41, '男性', 'なごや'),
-('田中美咲', 'タナカミサキ', 'みさき', 'misaki.tanaka@example.com', '福岡県', 59, '女性', '博多弁'),
-('中村健太', 'ナカムラケンタ', 'けん', 'kenta.nakamura@example.com', '北海道', 19, 'その他', '留学経験あり');
+('山田太郎', 'ヤマダタロウ', 'たろう', 'taro.yamada@example.com', '東京都', 20, '男性', false, NULL),
+('佐藤花子', 'サトウハナコ', 'はなちゃん', 'hanako.sato@example.com', '大阪府', 32, '女性', false, NULL),
+('鈴木一郎', 'スズキイチロウ', NULL, 'ichiro.suzuki@example.com', '愛知県', 41, '男性', false, 'なごや'),
+('田中美咲', 'タナカミサキ', 'みさき', 'misaki.tanaka@example.com', '福岡県', 59, '女性', false, '博多弁'),
+('中村健太', 'ナカムラケンタ', 'けん', 'kenta.nakamura@example.com', '北海道', 19, 'その他', true, '留学経験あり');
 
 INSERT INTO students_courses (student_id, course_name, start_date, end_date)
 VALUES
