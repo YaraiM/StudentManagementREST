@@ -1,7 +1,6 @@
 package raisetech.student.management.model.data;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Email;
 import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -25,7 +24,6 @@ public class StudentSearchCriteria {
   private String nickname;
 
   @Schema(description = "受講生のメールアドレス（部分一致）")
-  @Email(message = "有効なメールアドレスを入力してください")
   private String mail;
 
   @Schema(description = "受講生の住所（部分一致）")

@@ -18,7 +18,9 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -321,7 +323,7 @@ class StudentControllerTest {
   }
 
   @Test
-  void 受講生詳細情報の入力チェック_リクエスト可能な情報のうち入力値の指定がある項目が不適切な場合に入力チェックがかかること()
+  void 受講生詳細情報の入力チェック_Gender以外のリクエスト可能な情報のうち入力値の指定がある項目が不適切な場合に入力チェックがかかること()
       throws Exception {
     // 事前準備
     int id = 666;
@@ -344,6 +346,29 @@ class StudentControllerTest {
 
     // 検証
     assertEquals(5, violations.size());
+
+    Map<String, String> violationMessages = new HashMap<>();
+    for (ConstraintViolation<StudentDetail> violation : violations) {
+      String propertyPath = violation.getPropertyPath().toString();
+      String message = violation.getMessage();
+      violationMessages.put(propertyPath, message);
+    }
+
+    assertTrue(violationMessages.containsKey("student.fullname"));
+    assertEquals("空白は許可されていません", violationMessages.get("student.fullname"));
+
+    assertTrue(violationMessages.containsKey("student.furigana"));
+    assertEquals("空白は許可されていません", violationMessages.get("student.furigana"));
+
+    assertTrue(violationMessages.containsKey("student.mail"));
+    assertEquals("電子メールアドレスとして正しい形式にしてください",
+        violationMessages.get("student.mail"));
+
+    assertTrue(violationMessages.containsKey("studentCourses[0].courseName"));
+    assertEquals("空白は許可されていません", violationMessages.get("studentCourses[0].courseName"));
+
+    assertTrue(violationMessages.containsKey("studentCourses[1].courseName"));
+    assertEquals("空白は許可されていません", violationMessages.get("studentCourses[1].courseName"));
 
   }
 
@@ -378,6 +403,16 @@ class StudentControllerTest {
 
     // 検証
     assertEquals(1, violations.size());
+
+    Map<String, String> violationMessages = new HashMap<>();
+    for (ConstraintViolation<CourseStatus> violation : violations) {
+      String propertyPath = violation.getPropertyPath().toString();
+      String message = violation.getMessage();
+      violationMessages.put(propertyPath, message);
+    }
+
+    assertTrue(violationMessages.containsKey("status"));
+    assertEquals("null は許可されていません", violationMessages.get("status"));
 
   }
 

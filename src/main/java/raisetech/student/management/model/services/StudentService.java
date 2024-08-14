@@ -18,6 +18,7 @@ import raisetech.student.management.model.data.StudentSearchCriteria;
 import raisetech.student.management.model.domain.CourseDetail;
 import raisetech.student.management.model.domain.IntegratedDetail;
 import raisetech.student.management.model.domain.StudentDetail;
+import raisetech.student.management.model.exception.EmailAlreadyExistsException;
 import raisetech.student.management.model.exception.ResourceNotFoundException;
 import raisetech.student.management.model.repository.StudentRepository;
 
@@ -139,7 +140,7 @@ public class StudentService {
 
         .filter(courseDetail -> isDateOnOrBefore(
             courseDetail.getStudentCourse().getEndDate().toLocalDate(),
-            criteria.getEndDateFrom()))
+            criteria.getEndDateTo()))
 
         .filter(courseDetail -> isStatusMatching(courseDetail.getCourseStatus().getStatus(),
             criteria.getStatus()))
@@ -176,7 +177,7 @@ public class StudentService {
     return criteriaValue == null || targetValue == criteriaValue;
   }
 
-  private boolean isStatusMatching(Status criteriaValue, Status targetValue) {
+  private boolean isStatusMatching(Status targetValue, Status criteriaValue) {
     return criteriaValue == null || targetValue == criteriaValue;
   }
 
@@ -186,7 +187,7 @@ public class StudentService {
    * @param id 受講生ID
    * @return IDに紐づく受講生の詳細情報
    */
-  public StudentDetail searchStudent(int id) throws ResourceNotFoundException {
+  public StudentDetail searchStudent(int id) {
     Student student = repository.searchStudent(id);
 
     if (student == null) {
@@ -205,7 +206,7 @@ public class StudentService {
    * @param id 受講生コースID
    * @return IDに紐づく受講生コースの詳細情報
    */
-  public CourseDetail searchStudentCourse(int id) throws ResourceNotFoundException {
+  public CourseDetail searchStudentCourse(int id) {
     StudentCourse studentCourse = repository.searchStudentCourse(id);
 
     if (studentCourse == null) {
@@ -228,6 +229,14 @@ public class StudentService {
   @Transactional
   public IntegratedDetail registerStudent(StudentDetail studentDetail) {
     Student student = studentDetail.getStudent();
+
+    for (Student studentAtDb : repository.searchStudents()) {
+      if (studentAtDb.getMail().equals(student.getMail())) {
+        throw new EmailAlreadyExistsException(
+            "メールアドレス(" + student.getMail() + ")はすでに登録されているため使用できません。");
+      }
+    }
+
     repository.registerStudent(student);
 
     List<CourseDetail> courseDetails = new ArrayList<>();
@@ -273,8 +282,21 @@ public class StudentService {
    */
   @Transactional
   public void updateStudent(StudentDetail studentDetail) {
+    int studentId = studentDetail.getStudent().getId();
+    if (repository.searchStudent(studentId) == null) {
+      throw new ResourceNotFoundException("受講生ID 「" + studentId + "」は存在しません");
+    }
+
+    for (StudentCourse studentCourse : studentDetail.getStudentCourses()) {
+      if (repository.searchStudentCourse(studentCourse.getId()) == null) {
+        throw new ResourceNotFoundException(
+            "受講生コースID 「" + studentCourse.getId() + "」は存在しません");
+      }
+    }
+
     repository.updateStudent(studentDetail.getStudent());
     studentDetail.getStudentCourses().forEach(repository::updateStudentCourses);
+
   }
 
   /**
@@ -284,6 +306,10 @@ public class StudentService {
    */
   @Transactional
   public void updateCourseStatus(CourseStatus courseStatus) {
+    if (repository.searchStudentCourse(courseStatus.getCourseId()) == null) {
+      throw new ResourceNotFoundException(
+          "受講生コースID 「" + courseStatus.getCourseId() + "」は存在しません");
+    }
     repository.updateCourseStatus(courseStatus);
   }
 

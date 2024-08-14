@@ -26,7 +26,6 @@ import raisetech.student.management.model.domain.CourseDetail;
 import raisetech.student.management.model.domain.IntegratedDetail;
 import raisetech.student.management.model.domain.StudentDetail;
 import raisetech.student.management.model.exception.ErrorResponse;
-import raisetech.student.management.model.exception.ResourceNotFoundException;
 import raisetech.student.management.model.services.StudentService;
 
 /**
@@ -54,6 +53,11 @@ public class StudentController {
       @ApiResponse(responseCode = "200", description = "処理が成功した場合のレスポンス",
           content = @Content(mediaType = "application/json",
               array = @ArraySchema(schema = @Schema(implementation = StudentDetail.class))
+          )
+      ),
+      @ApiResponse(responseCode = "400", description = "無効な検索条件を指定した場合のレスポンス",
+          content = @Content(mediaType = "application/json",
+              array = @ArraySchema(schema = @Schema(implementation = ErrorResponse.class))
           )
       )
   })
@@ -90,7 +94,6 @@ public class StudentController {
    *
    * @param id 受講生ID
    * @return 受講生IDに紐づく受講生の詳細情報
-   * @throws ResourceNotFoundException 存在しないIDを指定した場合の例外
    */
   @Operation(summary = "受講生の詳細情報検索", description = "IDに紐づく任意の受講生の詳細情報を取得します。")
   @ApiResponses(value = {
@@ -103,8 +106,7 @@ public class StudentController {
   })
   @GetMapping("/students/detail")
   public StudentDetail getStudent(
-      @Parameter(description = "受講生のID") @RequestParam @NotNull int id)
-      throws ResourceNotFoundException {
+      @Parameter(description = "受講生のID") @RequestParam @NotNull int id) {
     return service.searchStudent(id);
   }
 
@@ -113,7 +115,6 @@ public class StudentController {
    *
    * @param id 受講生コースID
    * @return 受講生コースの詳細情報（申込状況）
-   * @throws ResourceNotFoundException 存在しないIDを指定した場合の例外
    */
   @Operation(summary = "受講生コースの詳細情報検索", description = "IDに紐づく任意の受講生コースの詳細情報を取得します。")
   @ApiResponses(value = {
@@ -126,8 +127,7 @@ public class StudentController {
   })
   @GetMapping("/students/courses/detail")
   public CourseDetail getStudentCourses(
-      @Parameter(description = "受講生コースのID") @RequestParam @NotNull int id)
-      throws ResourceNotFoundException {
+      @Parameter(description = "受講生コースのID") @RequestParam @NotNull int id) {
     return service.searchStudentCourse(id);
   }
 
@@ -141,6 +141,16 @@ public class StudentController {
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "処理が成功した場合のレスポンス",
           content = @Content(mediaType = "application/json", schema = @Schema(implementation = IntegratedDetail.class))
+      ),
+      @ApiResponse(responseCode = "400", description = "登録情報に無効な入力形式の値を指定した場合のレスポンス",
+          content = @Content(mediaType = "application/json",
+              array = @ArraySchema(schema = @Schema(implementation = ErrorResponse.class))
+          )
+      ),
+      @ApiResponse(responseCode = "409", description = "既に登録されているメールアドレスを指定した場合のレスポンス",
+          content = @Content(mediaType = "application/json",
+              array = @ArraySchema(schema = @Schema(implementation = ErrorResponse.class))
+          )
       )
   })
   @PostMapping("/students/new")
@@ -160,6 +170,14 @@ public class StudentController {
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "処理が成功した場合のレスポンス",
           content = @Content(mediaType = "text/plain", schema = @Schema(type = "string", example = "更新処理が成功しました"))
+      ),
+      @ApiResponse(responseCode = "400", description = "登録情報に無効な入力形式の値を指定した場合のレスポンス",
+          content = @Content(mediaType = "application/json",
+              array = @ArraySchema(schema = @Schema(implementation = ErrorResponse.class))
+          )
+      ),
+      @ApiResponse(responseCode = "404", description = "存在しないIDを指定した場合のレスポンス",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
       )
   })
   @PutMapping("/students/update")
@@ -178,6 +196,14 @@ public class StudentController {
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "処理が成功した場合のレスポンス",
           content = @Content(mediaType = "text/plain", schema = @Schema(type = "string", example = "更新処理が成功しました"))
+      ),
+      @ApiResponse(responseCode = "400", description = "登録情報に無効な入力形式の値を指定した場合のレスポンス",
+          content = @Content(mediaType = "application/json",
+              array = @ArraySchema(schema = @Schema(implementation = ErrorResponse.class))
+          )
+      ),
+      @ApiResponse(responseCode = "404", description = "存在しないIDを指定した場合のレスポンス",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
       )
   })
   @PutMapping("/students/courses/statuses/update")
