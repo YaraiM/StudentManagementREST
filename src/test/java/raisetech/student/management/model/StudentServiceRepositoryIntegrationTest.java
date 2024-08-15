@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static raisetech.student.management.model.data.Gender.その他;
 import static raisetech.student.management.model.data.Gender.男性;
 import static raisetech.student.management.model.data.Status.仮申込;
+import static raisetech.student.management.model.data.Status.本申込;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -26,6 +27,7 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import raisetech.student.management.model.data.CourseSearchCriteria;
+import raisetech.student.management.model.data.CourseStatus;
 import raisetech.student.management.model.data.Gender;
 import raisetech.student.management.model.data.Status;
 import raisetech.student.management.model.data.Student;
@@ -275,7 +277,7 @@ public class StudentServiceRepositoryIntegrationTest {
 
     // CourseStatus1が正しく登録されているか
     Map<String, Object> registerCourseStatus1Map = jdbcTemplate.queryForMap(
-        "SELECT * FROM course_status WHERE id=?",
+        "SELECT * FROM course_status WHERE course_id=?",
         actual.getCourseDetails().get(0).getCourseStatus().getId());
     assertEquals(9, registerCourseStatus1Map.get("id"));
     assertEquals(9, registerCourseStatus1Map.get("course_id"));
@@ -283,7 +285,7 @@ public class StudentServiceRepositoryIntegrationTest {
 
     // CourseStatus2が正しく登録されているか
     Map<String, Object> registerCourseStatus2Map = jdbcTemplate.queryForMap(
-        "SELECT * FROM course_status WHERE id=?",
+        "SELECT * FROM course_status WHERE course_id=?",
         actual.getCourseDetails().get(1).getCourseStatus().getId());
     assertEquals(10, registerCourseStatus2Map.get("id"));
     assertEquals(10, registerCourseStatus2Map.get("course_id"));
@@ -303,6 +305,137 @@ public class StudentServiceRepositoryIntegrationTest {
 
     // 実行と検証
     assertThrows(EmailAlreadyExistsException.class, () -> sut.registerStudent(studentDetail));
+
+  }
+
+  @Test
+  void 受講生詳細情報の更新_正常系_指定したIDの受講生詳細情報が更新されていること() {
+    // 事前準備
+    Student student = new Student();
+    student.setId(1);
+    student.setFullname("更新太郎");
+    student.setFurigana("コウシンタロウ");
+    student.setNickname("タロー");
+    student.setMail("koushin@example.com");
+    student.setAddress("日本");
+    student.setAge(21);
+    student.setGender(その他);
+    student.setDeleted(true);
+    student.setRemark("サービス・リポジトリの結合テスト：更新の確認");
+
+    List<StudentCourse> studentCourses = new ArrayList<>();
+    StudentCourse studentCourse1 = new StudentCourse();
+    StudentCourse studentCourse2 = new StudentCourse();
+    studentCourse1.setId(1);
+    studentCourse2.setId(2);
+    studentCourse1.setCourseName("C++");
+    studentCourse2.setCourseName("C#");
+    studentCourses.add(studentCourse1);
+    studentCourses.add(studentCourse2);
+
+    StudentDetail studentDetail = new StudentDetail(student, studentCourses);
+
+    // 実行
+    sut.updateStudent(studentDetail);
+
+    // 検証のため、検索メソッドを使用してactualへid=1のstudentを代入
+    StudentDetail actual = sut.searchStudent(1);
+
+    // id=1のstudentが正しく更新されているか
+    Map<String, Object> updateStudentMap = jdbcTemplate.queryForMap(
+        "SELECT * FROM students WHERE id=?", actual.getStudent().getId());
+    assertEquals(1, updateStudentMap.get("id"));
+    assertEquals("更新太郎", updateStudentMap.get("fullname"));
+    assertEquals("コウシンタロウ", updateStudentMap.get("furigana"));
+    assertEquals("タロー", updateStudentMap.get("nickname"));
+    assertEquals("koushin@example.com", updateStudentMap.get("mail"));
+    assertEquals("日本", updateStudentMap.get("address"));
+    assertEquals(21, updateStudentMap.get("age"));
+    assertEquals("その他", updateStudentMap.get("gender"));
+    assertEquals(true, updateStudentMap.get("deleted"));
+    assertEquals("サービス・リポジトリの結合テスト：更新の確認",
+        updateStudentMap.get("remark"));
+
+    // id=1のstudentCourse1が正しく更新されているか
+    Map<String, Object> updateStudentCourse1Map = jdbcTemplate.queryForMap(
+        "SELECT * FROM students_courses WHERE id=?", actual.getStudentCourses().get(0).getId());
+    assertEquals(1, updateStudentCourse1Map.get("id"));
+    assertEquals(1, updateStudentCourse1Map.get("student_id"));
+    assertEquals("C++", updateStudentCourse1Map.get("course_name"));
+
+    // id=2のstudentCourse2が正しく登録されているか
+    Map<String, Object> updateStudentCourse2Map = jdbcTemplate.queryForMap(
+        "SELECT * FROM students_courses WHERE id=?", actual.getStudentCourses().get(1).getId());
+    assertEquals(2, updateStudentCourse2Map.get("id"));
+    assertEquals(1, updateStudentCourse2Map.get("student_id"));
+    assertEquals("C#", updateStudentCourse2Map.get("course_name"));
+
+  }
+
+  @Test
+  void 受講生詳細情報の更新_異常系_存在しない受講生IDを指定したときに例外をスローすること() {
+    // 事前準備
+    Student student = new Student();
+    student.setId(999); // data.sqlに存在しない受講生ID
+
+    List<StudentCourse> studentCourses = new ArrayList<>();
+
+    StudentDetail studentDetail = new StudentDetail(student, studentCourses);
+
+    // 実行と検証
+    assertThrows(ResourceNotFoundException.class, () -> sut.updateStudent(studentDetail));
+
+  }
+
+  @Test
+  void 受講生詳細情報の更新_異常系_存在しない受講生コースIDを指定したときに例外をスローすること() {
+    // 事前準備
+    Student student = new Student();
+    student.setId(1); //受講生IDには存在する値が入っている
+
+    StudentCourse studentCourse = new StudentCourse();
+    studentCourse.setId(999); //受講生コースIDには存在しない値が入っている
+    List<StudentCourse> studentCourses = new ArrayList<>();
+    studentCourses.add(studentCourse);
+
+    StudentDetail studentDetail = new StudentDetail(student, studentCourses);
+
+    // 実行と検証
+    assertThrows(ResourceNotFoundException.class, () -> sut.updateStudent(studentDetail));
+
+  }
+
+  @Test
+  void コース申込状況の更新_正常系_指定した受講生コースIDのコース申込状況が適切に更新されていること() {
+    // 事前準備
+    CourseStatus courseStatus = new CourseStatus();
+    courseStatus.setId(1);
+    courseStatus.setCourseId(1);
+    courseStatus.setStatus(本申込);
+
+    // 実行
+    sut.updateCourseStatus(courseStatus);
+
+    // 検証のため、検索メソッドを使用してactualへid=1のcourseStatusを代入
+    CourseStatus actual = sut.searchStudentCourse(1).getCourseStatus();
+
+    // CourseStatusが正しく登録されているか
+    Map<String, Object> updateCourseStatus1Map = jdbcTemplate.queryForMap(
+        "SELECT * FROM course_status WHERE course_id=?", actual.getCourseId());
+    assertEquals(1, updateCourseStatus1Map.get("id"));
+    assertEquals(1, updateCourseStatus1Map.get("course_id"));
+    assertEquals("本申込", updateCourseStatus1Map.get("status"));
+
+  }
+
+  @Test
+  void コース申込状況の更新_異常系_存在しない受講生コースIDを指定したときに例外をスローすること() {
+    // 事前準備
+    CourseStatus courseStatus = new CourseStatus();
+    courseStatus.setId(999); // 受講生コースIDに存在しない値が入っている
+
+    // 実行と検証
+    assertThrows(ResourceNotFoundException.class, () -> sut.updateCourseStatus(courseStatus));
 
   }
 
