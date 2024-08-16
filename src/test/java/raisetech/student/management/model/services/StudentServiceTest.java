@@ -26,6 +26,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 import raisetech.student.management.model.converter.CourseConverter;
 import raisetech.student.management.model.converter.StudentConverter;
 import raisetech.student.management.model.data.CourseSearchCriteria;
@@ -55,6 +56,7 @@ class StudentServiceTest {
   @Mock
   private CourseConverter courseConverter;
 
+  @Autowired
   private StudentService sut;
 
   /**
