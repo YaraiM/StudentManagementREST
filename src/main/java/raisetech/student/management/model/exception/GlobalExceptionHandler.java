@@ -56,7 +56,7 @@ public class GlobalExceptionHandler {
   }
 
   /**
-   * 存在しないIDをパラメータ指定した場合に例外処理を行うメソッドです。（検査例外）
+   * 存在しないIDをパラメータ指定した場合に例外処理を行うメソッドです。
    * ResourceNotFoundExceptionがスローされたとき、ステータス（NotFound）および指定した例外メッセージを返します。
    *
    * @param ex 例外クラス（リソースが存在しない）
@@ -71,6 +71,11 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
   }
 
+  /**
+   * 存在するメールアドレスを指定して更新系の処理をしようとした場合に例外処理を行うメソッドです。
+   * @param ex 例外クラス（メールアドレスの競合）
+   * @return エラーレスポンス
+   */
   @ExceptionHandler(EmailAlreadyExistsException.class)
   public ResponseEntity<ErrorResponse> handleEmailAlreadyExistsException(
       EmailAlreadyExistsException ex) {

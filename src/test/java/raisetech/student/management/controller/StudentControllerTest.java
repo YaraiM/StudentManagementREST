@@ -4,9 +4,11 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -36,6 +38,7 @@ import raisetech.student.management.model.data.StudentCourse;
 import raisetech.student.management.model.data.StudentSearchCriteria;
 import raisetech.student.management.model.domain.CourseDetail;
 import raisetech.student.management.model.domain.StudentDetail;
+import raisetech.student.management.model.exception.EmailAlreadyExistsException;
 import raisetech.student.management.model.exception.ResourceNotFoundException;
 import raisetech.student.management.model.services.StudentService;
 
@@ -152,10 +155,7 @@ class StudentControllerTest {
     mockMvc.perform(MockMvcRequestBuilders.get("/students/detail")
             .param("id", String.valueOf(id)))
         .andExpect(status().isNotFound())
-        .andExpect(result -> assertTrue(
-            result.getResolvedException() instanceof ResourceNotFoundException))
-        .andExpect(result -> assertEquals("受講生ID 「" + id + "」は存在しません",
-            result.getResolvedException().getMessage()));
+        .andExpect(jsonPath("$.message").value("受講生ID 「" + id + "」は存在しません"));
 
     verify(service, times(1)).searchStudent(id);
   }
@@ -185,27 +185,23 @@ class StudentControllerTest {
     // 事前準備
     int id = 999;
     when(service.searchStudentCourse(id)).thenThrow(
-        new ResourceNotFoundException("受講生ID 「" + id + "」は存在しません"));
+        new ResourceNotFoundException("受講生コースID 「" + id + "」は存在しません"));
 
     // 実行と検証
     mockMvc.perform(MockMvcRequestBuilders.get("/students/courses/detail")
             .param("id", String.valueOf(id)))
         .andExpect(status().isNotFound())
-        .andExpect(result -> assertTrue(
-            result.getResolvedException() instanceof ResourceNotFoundException))
-        .andExpect(result -> assertEquals("受講生ID 「" + id + "」は存在しません",
-            result.getResolvedException().getMessage()));
+        .andExpect(jsonPath("$.message").value("受講生コースID 「" + id + "」は存在しません"));
 
     verify(service, times(1)).searchStudentCourse(id);
   }
 
-
   @Test
-  void 受講生の新規登録_エンドポイントでサービスの処理が適切に呼び出され空で返ってくること()
+  void 受講生の新規登録_正常系_エンドポイントでサービスの処理が適切に呼び出され空で返ってくること()
       throws Exception {
     // 実行と検証
     mockMvc.perform(
-            MockMvcRequestBuilders.post("/students/new").contentType(MediaType.APPLICATION_JSON)
+            post("/students/new").contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
                         {
@@ -236,7 +232,54 @@ class StudentControllerTest {
   }
 
   @Test
-  void 受講生の更新_エンドポイントでサービスの処理が適切に呼び出され_更新処理が成功しました_というメッセージが返ってくること()
+  void 受講生の新規登録_異常系_すでに登録されているメールアドレスを指定したときに例外がスローされること()
+      throws Exception {
+    // 事前準備
+    StudentDetail studentDetail = new StudentDetail();
+    Student student = new Student();
+    student.setMail("error@example.com");
+    studentDetail.setStudent(student);
+
+    String expectedErrorMessage = "メールアドレス(" + studentDetail.getStudent().getMail()
+        + ")はすでに登録されているため使用できません。";
+
+    when(service.registerStudent(any(StudentDetail.class))).thenThrow(
+        new EmailAlreadyExistsException(expectedErrorMessage));
+
+    // 実行と検証
+    mockMvc.perform(post("/students/new")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(
+                """
+                    {
+                        "student": {
+                            "fullname": "田中昭三",
+                            "furigana": "たなかしょうぞう",
+                            "nickname": "ショーゾー",
+                            "mail": "error@example.com",
+                            "address": "東京",
+                            "age": 55,
+                            "gender": "男性",
+                            "remark": "新規登録のテストです"
+                        },
+                        "studentCourses": [
+                            {
+                                "courseName": "Java"
+                            },
+                            {
+                                "courseName": "Ruby"
+                            }
+                        ]
+                    }
+                    """
+            ))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.message").value(expectedErrorMessage));
+
+  }
+
+  @Test
+  void 受講生の更新_正常系_エンドポイントでサービスの処理が適切に呼び出され_更新処理が成功しました_というメッセージが返ってくること()
       throws Exception {
 
     // 実行と検証
@@ -246,6 +289,7 @@ class StudentControllerTest {
                 """
                         {
                             "student": {
+                                "id": 1,
                                 "fullname": "田中昭三",
                                 "furigana": "たなかしょうぞう",
                                 "nickname": "ショーゾー",
@@ -259,10 +303,12 @@ class StudentControllerTest {
                             "studentCourses": [
                                 {
                                     "id": 1,
+                                    "student_id": 1,
                                     "courseName": "Java"
                                 },
                                 {
                                     "id":2,
+                                    "student_id": 1,
                                     "courseName": "Ruby"
                                 }
                             ]
@@ -277,7 +323,116 @@ class StudentControllerTest {
   }
 
   @Test
-  void コース申込状況の更新_エンドポイントでサービスの処理が適切に呼び出され_更新処理が成功しました_というメッセージが返ってくること()
+  void 受講生の更新_異常系_存在しない受講生IDを指定したときに例外をスローすること()
+      throws Exception {
+    // 事前準備
+    Student student = new Student();
+    student.setId(999);
+    StudentDetail studentDetail = new StudentDetail();
+    studentDetail.setStudent(student);
+
+    String expectedErrorMessage =
+        "受講生ID 「" + studentDetail.getStudent().getId() + "」は存在しません";
+
+    doThrow(new ResourceNotFoundException(expectedErrorMessage))
+        .when(service).updateStudent(any(StudentDetail.class));
+
+    // 実行と検証
+    mockMvc.perform(MockMvcRequestBuilders.put("/students/update")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(
+                """
+                        {
+                            "student": {
+                                "id": 999,
+                                "fullname": "田中昭三",
+                                "furigana": "たなかしょうぞう",
+                                "nickname": "ショーゾー",
+                                "mail": "shozo@example.com",
+                                "address": "東京",
+                                "age": 56,
+                                "gender": "男性",
+                                "remark": "更新のテストです。年齢を56に、deletedをtrueにしています。",
+                                "deleted": true
+                            },
+                            "studentCourses": [
+                                {
+                                    "id": 1,
+                                    "student_id": 999,
+                                    "courseName": "Java"
+                                },
+                                {
+                                    "id":2,
+                                    "student_id": 999,
+                                    "courseName": "Ruby"
+                                }
+                            ]
+                        }
+                    """
+            ))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.message").value(expectedErrorMessage));
+
+  }
+
+  @Test
+  void 受講生の更新_異常系_存在しない受講生コースIDを指定したときに例外をスローすること()
+      throws Exception {
+    // 事前準備
+    StudentCourse studentCourse = new StudentCourse();
+    studentCourse.setId(999);
+    List<StudentCourse> studentCourses = new ArrayList<>();
+    studentCourses.add(studentCourse);
+    StudentDetail studentDetail = new StudentDetail();
+    studentDetail.setStudentCourses(studentCourses);
+
+    String expectedErrorMessage =
+        "受講生コースID 「" + studentDetail.getStudentCourses().getFirst().getId()
+            + "」は存在しません";
+
+    doThrow(new ResourceNotFoundException(expectedErrorMessage))
+        .when(service).updateStudent(any(StudentDetail.class));
+
+    // 実行と検証
+    mockMvc.perform(MockMvcRequestBuilders.put("/students/update")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(
+                """
+                        {
+                            "student": {
+                                "id": 1,
+                                "fullname": "田中昭三",
+                                "furigana": "たなかしょうぞう",
+                                "nickname": "ショーゾー",
+                                "mail": "shozo@example.com",
+                                "address": "東京",
+                                "age": 56,
+                                "gender": "男性",
+                                "remark": "更新のテストです。年齢を56に、deletedをtrueにしています。",
+                                "deleted": true
+                            },
+                            "studentCourses": [
+                                {
+                                    "id": 1,
+                                    "student_id": 999,
+                                    "courseName": "Java"
+                                },
+                                {
+                                    "id":2,
+                                    "student_id": 999,
+                                    "courseName": "Ruby"
+                                }
+                            ]
+                        }
+                    """
+            ))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.message").value(expectedErrorMessage));
+
+  }
+
+  @Test
+  void コース申込状況の更新_正常系_エンドポイントでサービスの処理が適切に呼び出され_更新処理が成功しました_というメッセージが返ってくること()
       throws Exception {
 
     // 実行と検証
@@ -292,6 +447,32 @@ class StudentControllerTest {
         .andExpect(content().string("更新処理が成功しました"));
 
     verify(service, times(1)).updateCourseStatus(any());
+
+  }
+
+  @Test
+  void コース申込状況の更新_異常系_存在しない受講生コースIDを指定したときに例外をスローすること()
+      throws Exception {
+    // 事前準備
+    CourseStatus courseStatus = new CourseStatus();
+    courseStatus.setCourseId(999);
+
+    String expectedErrorMessage =
+        "受講生コースID 「" + courseStatus.getCourseId() + "」は存在しません";
+
+    doThrow(new ResourceNotFoundException(expectedErrorMessage))
+        .when(service).updateCourseStatus(any(CourseStatus.class));
+
+    // 実行と検証
+    mockMvc.perform(MockMvcRequestBuilders.put("/students/courses/statuses/update")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(
+                """
+                    {"courseId":999, "status":"受講中"}
+                    """
+            ))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.message").value(expectedErrorMessage));
 
   }
 
