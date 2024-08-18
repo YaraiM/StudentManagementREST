@@ -587,53 +587,47 @@ public class StudentControllerServiceRepositoryIntegrationTest {
 
   }
 
-//  @Test
-//  void 受講生の新規登録_異常系_すでに登録されているメールアドレスを指定したときに例外がスローされること()
-//      throws Exception {
-//    // 事前準備
-//    StudentDetail studentDetail = new StudentDetail();
-//    Student student = new Student();
-//    student.setMail("error@example.com");
-//    studentDetail.setStudent(student);
-//
-//    String expectedErrorMessage = "メールアドレス(" + studentDetail.getStudent().getMail()
-//        + ")はすでに登録されているため使用できません。";
-//
-//    when(service.registerStudent(any(StudentDetail.class))).thenThrow(
-//        new EmailAlreadyExistsException(expectedErrorMessage));
-//
-//    // 実行と検証
-//    mockMvc.perform(post("/students/new")
-//            .contentType(MediaType.APPLICATION_JSON)
-//            .content(
-//                """
-//                    {
-//                        "student": {
-//                            "fullname": "田中昭三",
-//                            "furigana": "たなかしょうぞう",
-//                            "nickname": "ショーゾー",
-//                            "mail": "error@example.com",
-//                            "address": "東京",
-//                            "age": 55,
-//                            "gender": "男性",
-//                            "remark": "新規登録のテストです"
-//                        },
-//                        "studentCourses": [
-//                            {
-//                                "courseName": "Java"
-//                            },
-//                            {
-//                                "courseName": "Ruby"
-//                            }
-//                        ]
-//                    }
-//                    """
-//            ))
-//        .andExpect(status().isConflict())
-//        .andExpect(jsonPath("$.message").value(expectedErrorMessage));
-//
-//  }
-//
+  @Test
+  void 受講生の新規登録_異常系_すでに登録されているメールアドレスを指定したときに例外がスローされること()
+      throws Exception {
+    // 実行と検証
+    mockMvc.perform(post("/students/new")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(
+                """
+                    {
+                        "student": {
+                            "fullname": "田中昭三",
+                            "furigana": "たなかしょうぞう",
+                            "nickname": "ショーゾー",
+                            "mail": "taro.yamada@example.com",
+                            "address": "東京",
+                            "age": 55,
+                            "gender": "男性",
+                            "remark": "新規登録のテストです"
+                        },
+                        "studentCourses": [
+                            {
+                                "courseName": "Java"
+                            },
+                            {
+                                "courseName": "Ruby"
+                            }
+                        ]
+                    }
+                    """
+            ))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.message").value(
+            "メールアドレス(taro.yamada@example.com)はすでに登録されているため使用できません。"))
+        // MvcResultからレスポンスを取得し、中身をコンソールに出力する。
+        .andExpect(result -> {
+          result.getResponse().setCharacterEncoding("UTF-8");
+          String content = result.getResponse().getContentAsString();
+          System.out.println("Response Content: " + content);
+        });
+  }
+
 //  @Test
 //  void 受講生の更新_正常系_エンドポイントでサービスの処理が適切に呼び出され_更新処理が成功しました_というメッセージが返ってくること()
 //      throws Exception {
