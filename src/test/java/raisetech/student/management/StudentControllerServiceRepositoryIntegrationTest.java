@@ -1,10 +1,14 @@
 package raisetech.student.management;
 
 import static org.hamcrest.Matchers.contains;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static raisetech.student.management.model.data.Status.仮申込;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
@@ -24,7 +28,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import raisetech.student.management.model.data.CourseSearchCriteria;
 import raisetech.student.management.model.data.Gender;
@@ -57,30 +60,29 @@ public class StudentControllerServiceRepositoryIntegrationTest {
       throws Exception {
     // 実行と検証
     // HttpリクエストのクエリパラメータはすべてStringで送信されるため、String以外を文字列変換したときにはパラメータとして指定されないようにしなければならない（nullチェック）
-    mockMvc.perform(
-            MockMvcRequestBuilders.get("/students")
-                .param("fullname", criteria.getFullname())
-                .param("furigana", criteria.getFurigana())
-                .param("nickname", criteria.getNickname())
-                .param("mail", criteria.getMail())
-                .param("address", criteria.getAddress())
-                .param("minAge",
-                    criteria.getMinAge() != null ? String.valueOf(criteria.getMinAge()) : null)
-                .param("maxAge",
-                    criteria.getMaxAge() != null ? String.valueOf(criteria.getMaxAge()) : null)
-                .param("gender", criteria.getGender() != null ? criteria.getGender().toString() : null)
-                .param("deleted",
-                    criteria.getDeleted() != null ? String.valueOf(criteria.getDeleted()) : null)
-                .param("courseName", criteria.getCourseName())
-                .param("startDateFrom",
-                    criteria.getStartDateFrom() != null ? criteria.getStartDateFrom().toString() : null)
-                .param("startDateTo",
-                    criteria.getStartDateTo() != null ? criteria.getStartDateTo().toString() : null)
-                .param("endDateFrom",
-                    criteria.getEndDateFrom() != null ? criteria.getEndDateFrom().toString() : null)
-                .param("endDateTo",
-                    criteria.getEndDateTo() != null ? criteria.getEndDateTo().toString() : null)
-                .accept(MediaType.APPLICATION_JSON)
+    mockMvc.perform(get("/students")
+            .param("fullname", criteria.getFullname())
+            .param("furigana", criteria.getFurigana())
+            .param("nickname", criteria.getNickname())
+            .param("mail", criteria.getMail())
+            .param("address", criteria.getAddress())
+            .param("minAge",
+                criteria.getMinAge() != null ? String.valueOf(criteria.getMinAge()) : null)
+            .param("maxAge",
+                criteria.getMaxAge() != null ? String.valueOf(criteria.getMaxAge()) : null)
+            .param("gender", criteria.getGender() != null ? criteria.getGender().toString() : null)
+            .param("deleted",
+                criteria.getDeleted() != null ? String.valueOf(criteria.getDeleted()) : null)
+            .param("courseName", criteria.getCourseName())
+            .param("startDateFrom",
+                criteria.getStartDateFrom() != null ? criteria.getStartDateFrom().toString() : null)
+            .param("startDateTo",
+                criteria.getStartDateTo() != null ? criteria.getStartDateTo().toString() : null)
+            .param("endDateFrom",
+                criteria.getEndDateFrom() != null ? criteria.getEndDateFrom().toString() : null)
+            .param("endDateTo",
+                criteria.getEndDateTo() != null ? criteria.getEndDateTo().toString() : null)
+            .accept(MediaType.APPLICATION_JSON)
         )
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()").value(expectedStudentIds.size())) // valueは単一の値を検証する
@@ -187,23 +189,22 @@ public class StudentControllerServiceRepositoryIntegrationTest {
   void 受講生詳細の一覧検索_リクエストパラメータに合致するデータがない場合に検索結果が0件であること()
       throws Exception {
     // 実行と検証
-    mockMvc.perform(
-            MockMvcRequestBuilders.get("/students")
-                .param("fullname", "鈴木太郎")
-                .param("furigana", "たなかたろう")
-                .param("nickname", "たなっち")
-                .param("mail", "tanaka@example.com")
-                .param("address", "東京")
-                .param("minAge", "10")
-                .param("maxAge", "30")
-                .param("gender", "男性")
-                .param("deleted", "false")
-                .param("courseName", "Java")
-                .param("startDateFrom", LocalDate.of(2024, 6, 1).toString())
-                .param("startDateTo", LocalDate.of(2024, 8, 1).toString())
-                .param("endDateFrom", LocalDate.of(2025, 6, 1).toString())
-                .param("endDateTo", LocalDate.of(2025, 8, 1).toString())
-                .accept(MediaType.APPLICATION_JSON)
+    mockMvc.perform(get("/students")
+            .param("fullname", "鈴木太郎")
+            .param("furigana", "たなかたろう")
+            .param("nickname", "たなっち")
+            .param("mail", "tanaka@example.com")
+            .param("address", "東京")
+            .param("minAge", "10")
+            .param("maxAge", "30")
+            .param("gender", "男性")
+            .param("deleted", "false")
+            .param("courseName", "Java")
+            .param("startDateFrom", LocalDate.of(2024, 6, 1).toString())
+            .param("startDateTo", LocalDate.of(2024, 8, 1).toString())
+            .param("endDateFrom", LocalDate.of(2025, 6, 1).toString())
+            .param("endDateTo", LocalDate.of(2025, 8, 1).toString())
+            .accept(MediaType.APPLICATION_JSON)
         )
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()").value(0))
@@ -220,19 +221,18 @@ public class StudentControllerServiceRepositoryIntegrationTest {
       List<Integer> expectedStatusIds, List<Integer> expectedCourseIdsInStatus,
       List<String> expectedStatus)
       throws Exception {
-    mockMvc.perform(
-            MockMvcRequestBuilders.get("/students/courses")
-                .param("courseName", criteria.getCourseName())
-                .param("startDateFrom",
-                    criteria.getStartDateFrom() != null ? criteria.getStartDateFrom().toString() : null)
-                .param("startDateTo",
-                    criteria.getStartDateTo() != null ? criteria.getStartDateTo().toString() : null)
-                .param("endDateFrom",
-                    criteria.getEndDateFrom() != null ? criteria.getEndDateFrom().toString() : null)
-                .param("endDateTo",
-                    criteria.getEndDateTo() != null ? criteria.getEndDateTo().toString() : null)
-                .param("status", criteria.getStatus() != null ? criteria.getStatus().toString() : null)
-                .accept(MediaType.APPLICATION_JSON)
+    mockMvc.perform(get("/students/courses")
+            .param("courseName", criteria.getCourseName())
+            .param("startDateFrom",
+                criteria.getStartDateFrom() != null ? criteria.getStartDateFrom().toString() : null)
+            .param("startDateTo",
+                criteria.getStartDateTo() != null ? criteria.getStartDateTo().toString() : null)
+            .param("endDateFrom",
+                criteria.getEndDateFrom() != null ? criteria.getEndDateFrom().toString() : null)
+            .param("endDateTo",
+                criteria.getEndDateTo() != null ? criteria.getEndDateTo().toString() : null)
+            .param("status", criteria.getStatus() != null ? criteria.getStatus().toString() : null)
+            .accept(MediaType.APPLICATION_JSON)
         )
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()").value(expectedCourseIds.size()))
@@ -305,15 +305,14 @@ public class StudentControllerServiceRepositoryIntegrationTest {
   void 受講生コース詳細の一覧検索_リクエストパラメータに合致するデータがない場合に検索結果が0件であること()
       throws Exception {
     // 実行と検証
-    mockMvc.perform(
-            MockMvcRequestBuilders.get("/students/courses")
-                .param("courseName", "Java")
-                .param("startDateFrom", LocalDate.of(2024, 6, 1).toString())
-                .param("startDateTo", LocalDate.of(2024, 8, 1).toString())
-                .param("endDateFrom", LocalDate.of(2025, 6, 1).toString())
-                .param("endDateTo", LocalDate.of(2025, 8, 1).toString())
-                .param("status", "受講終了")
-                .accept(MediaType.APPLICATION_JSON)
+    mockMvc.perform(get("/students/courses")
+            .param("courseName", "Java")
+            .param("startDateFrom", LocalDate.of(2024, 6, 1).toString())
+            .param("startDateTo", LocalDate.of(2024, 8, 1).toString())
+            .param("endDateFrom", LocalDate.of(2025, 6, 1).toString())
+            .param("endDateTo", LocalDate.of(2025, 8, 1).toString())
+            .param("status", "受講終了")
+            .accept(MediaType.APPLICATION_JSON)
         )
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()").value(0))
@@ -326,7 +325,7 @@ public class StudentControllerServiceRepositoryIntegrationTest {
       throws Exception {
 
     // 実行と検証
-    mockMvc.perform(MockMvcRequestBuilders.get("/students/detail")
+    mockMvc.perform(get("/students/detail")
             .param("id", String.valueOf(1))
             .accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
@@ -364,7 +363,7 @@ public class StudentControllerServiceRepositoryIntegrationTest {
   void 受講生詳細の検索_異常系_存在しない受講生IDを指定したときに例外がスローされること()
       throws Exception {
     // 実行と検証
-    mockMvc.perform(MockMvcRequestBuilders.get("/students/detail")
+    mockMvc.perform(get("/students/detail")
             .param("id", String.valueOf(999)))
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.message").value("受講生ID 「" + 999 + "」は存在しません"))
@@ -381,9 +380,8 @@ public class StudentControllerServiceRepositoryIntegrationTest {
   void 受講生コース詳細の検索_正常系_指定した受講生コースIDに合致したcourseDetailが返ってくること()
       throws Exception {
     // 実行と検証
-    mockMvc.perform(
-            MockMvcRequestBuilders.get("/students/courses/detail")
-                .param("id", String.valueOf(1)))
+    mockMvc.perform(get("/students/courses/detail")
+            .param("id", String.valueOf(1)))
         .andExpect(jsonPath("$.studentCourse.id").value(1))
         .andExpect(jsonPath("$.studentCourse.studentId").value(1))
         .andExpect(jsonPath("$.studentCourse.courseName").value("Java"))
@@ -404,7 +402,7 @@ public class StudentControllerServiceRepositoryIntegrationTest {
   void 受講生コース詳細の検索_異常系_存在しない受講生IDを指定したときに例外がスローされること()
       throws Exception {
     // 実行と検証
-    mockMvc.perform(MockMvcRequestBuilders.get("/students/courses/detail")
+    mockMvc.perform(get("/students/courses/detail")
             .param("id", String.valueOf(999)))
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.message").value("受講生コースID 「" + 999 + "」は存在しません"))
@@ -417,41 +415,178 @@ public class StudentControllerServiceRepositoryIntegrationTest {
 
   }
 
-//  @Test
-//  void 受講生の新規登録_正常系_エンドポイントでサービスの処理が適切に呼び出され空で返ってくること()
-//      throws Exception {
-//    // 実行と検証
-//    mockMvc.perform(
-//            post("/students/new").contentType(MediaType.APPLICATION_JSON)
-//                .content(
-//                    """
-//                        {
-//                            "student": {
-//                                "fullname": "田中昭三",
-//                                "furigana": "たなかしょうぞう",
-//                                "nickname": "ショーゾー",
-//                                "mail": "shozo@example.com",
-//                                "address": "東京",
-//                                "age": 55,
-//                                "gender": "男性",
-//                                "remark": "新規登録のテストです"
-//                            },
-//                            "studentCourses": [
-//                                {
-//                                    "courseName": "Java"
-//                                },
-//                                {
-//                                    "courseName": "Ruby"
-//                                }
-//                            ]
-//                        }
-//                        """
-//                ))
-//        .andExpect(status().isOk());
-//
-//    verify(service, times(1)).registerStudent(any());
-//  }
-//
+  @Test
+  void 受講生の新規登録_正常系_JSON形式のリクエストボディを指定して新規登録できること()
+      throws Exception {
+    // 事前準備
+    LocalDate testStartDate = LocalDate.now();
+    // 実行と検証
+    mockMvc.perform(post("/students/new")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(
+                """
+                    {
+                        "student": {
+                            "fullname": "田中昭三",
+                            "furigana": "たなかしょうぞう",
+                            "nickname": "ショーゾー",
+                            "mail": "shozo@example.com",
+                            "address": "東京",
+                            "age": 55,
+                            "gender": "男性",
+                            "remark": "新規登録のテストです"
+                        },
+                        "studentCourses": [
+                            {
+                                "courseName": "Java"
+                            },
+                            {
+                                "courseName": "Ruby"
+                            }
+                        ]
+                    }
+                    """
+            )
+            .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        // studentの検証
+        .andExpect(jsonPath("$.studentDetail.student.id").value(6))
+        .andExpect(jsonPath("$.studentDetail.student.fullname").value("田中昭三"))
+        .andExpect(jsonPath("$.studentDetail.student.furigana").value("たなかしょうぞう"))
+        .andExpect(jsonPath("$.studentDetail.student.nickname").value("ショーゾー"))
+        .andExpect(jsonPath("$.studentDetail.student.mail").value("shozo@example.com"))
+        .andExpect(jsonPath("$.studentDetail.student.address").value("東京"))
+        .andExpect(jsonPath("$.studentDetail.student.age").value(55))
+        .andExpect(jsonPath("$.studentDetail.student.gender").value("男性"))
+        .andExpect(jsonPath("$.studentDetail.student.deleted").value(false))
+        .andExpect(jsonPath("$.studentDetail.student.remark").value("新規登録のテストです"))
+        //studentDetail下のstudentCoursesの検証
+        .andExpect(jsonPath("$.studentDetail.studentCourses[0].id").value(9))
+        .andExpect(jsonPath("$.studentDetail.studentCourses[0].studentId").value(6))
+        .andExpect(jsonPath("$.studentDetail.studentCourses[0].courseName").value("Java"))
+        .andExpect(result -> {
+          String responseContent = result.getResponse().getContentAsString();
+          JsonNode jsonNode = objectMapper.readTree(responseContent);
+          String actualStartDateStr = jsonNode.path("studentDetail")
+              .path("studentCourses")
+              .get(0)
+              .path("startDate")
+              .asText();
+          LocalDate actualStartDate = LocalDate.parse(actualStartDateStr.split("T")[0]);
+          assertEquals(testStartDate, actualStartDate, "年月日のみ合っていればOKとする");
+        })
+        .andExpect(result -> {
+          String responseContent = result.getResponse().getContentAsString();
+          JsonNode jsonNode = objectMapper.readTree(responseContent);
+          String actualEndDateStr = jsonNode.path("studentDetail")
+              .path("studentCourses")
+              .get(0)
+              .path("endDate")
+              .asText();
+          LocalDate actualEndDate = LocalDate.parse(actualEndDateStr.split("T")[0]);
+          assertEquals(testStartDate.plusYears(1), actualEndDate,
+              "年月日のみ合っていればOKとする");
+        })
+        .andExpect(jsonPath("$.studentDetail.studentCourses[1].id").value(10))
+        .andExpect(jsonPath("$.studentDetail.studentCourses[1].studentId").value(6))
+        .andExpect(jsonPath("$.studentDetail.studentCourses[1].courseName").value("Ruby"))
+        .andExpect(result -> {
+          String responseContent = result.getResponse().getContentAsString();
+          JsonNode jsonNode = objectMapper.readTree(responseContent);
+          String actualStartDateStr = jsonNode.path("studentDetail")
+              .path("studentCourses")
+              .get(1)
+              .path("startDate")
+              .asText();
+          LocalDate actualStartDate = LocalDate.parse(actualStartDateStr.split("T")[0]);
+          assertEquals(testStartDate, actualStartDate, "年月日のみ合っていればOKとする");
+        })
+        .andExpect(result -> {
+          String responseContent = result.getResponse().getContentAsString();
+          JsonNode jsonNode = objectMapper.readTree(responseContent);
+          String actualEndDateStr = jsonNode.path("studentDetail")
+              .path("studentCourses")
+              .get(1)
+              .path("endDate")
+              .asText();
+          LocalDate actualEndDate = LocalDate.parse(actualEndDateStr.split("T")[0]);
+          assertEquals(testStartDate.plusYears(1), actualEndDate,
+              "年月日のみ合っていればOKとする");
+        })
+        //CourseDetails下のstudentCourseの検証
+        .andExpect(jsonPath("$.courseDetails[0].studentCourse.id").value(9))
+        .andExpect(jsonPath("$.courseDetails[0].studentCourse.studentId").value(6))
+        .andExpect(jsonPath("$.courseDetails[0].studentCourse.courseName").value("Java"))
+        .andExpect(result -> {
+          String responseContent = result.getResponse().getContentAsString();
+          JsonNode jsonNode = objectMapper.readTree(responseContent);
+          String actualStartDateStr = jsonNode
+              .path("courseDetails")
+              .get(0)
+              .path("studentCourse")
+              .path("startDate")
+              .asText();
+          LocalDate actualStartDate = LocalDate.parse(actualStartDateStr.split("T")[0]);
+          assertEquals(testStartDate, actualStartDate, "年月日のみ合っていればOKとする");
+        })
+        .andExpect(result -> {
+          String responseContent = result.getResponse().getContentAsString();
+          JsonNode jsonNode = objectMapper.readTree(responseContent);
+          String actualEndDateStr = jsonNode
+              .path("courseDetails")
+              .get(0)
+              .path("studentCourse")
+              .path("endDate")
+              .asText();
+          LocalDate actualEndDate = LocalDate.parse(actualEndDateStr.split("T")[0]);
+          assertEquals(testStartDate.plusYears(1), actualEndDate,
+              "年月日のみ合っていればOKとする");
+        })
+        .andExpect(jsonPath("$.courseDetails[1].studentCourse.id").value(10))
+        .andExpect(jsonPath("$.courseDetails[1].studentCourse.studentId").value(6))
+        .andExpect(jsonPath("$.courseDetails[1].studentCourse.courseName").value("Ruby"))
+        .andExpect(result -> {
+          String responseContent = result.getResponse().getContentAsString();
+          JsonNode jsonNode = objectMapper.readTree(responseContent);
+          String actualStartDateStr = jsonNode
+              .path("courseDetails")
+              .get(1)
+              .path("studentCourse")
+              .path("startDate")
+              .asText();
+          LocalDate actualStartDate = LocalDate.parse(actualStartDateStr.split("T")[0]);
+          assertEquals(testStartDate, actualStartDate, "年月日のみ合っていればOKとする");
+        })
+        .andExpect(result -> {
+          String responseContent = result.getResponse().getContentAsString();
+          JsonNode jsonNode = objectMapper.readTree(responseContent);
+          String actualEndDateStr = jsonNode
+              .path("courseDetails")
+              .get(1)
+              .path("studentCourse")
+              .path("endDate")
+              .asText();
+          LocalDate actualEndDate = LocalDate.parse(actualEndDateStr.split("T")[0]);
+          assertEquals(testStartDate.plusYears(1), actualEndDate,
+              "年月日のみ合っていればOKとする");
+        })
+        //courseStatusの検証
+        .andExpect(jsonPath("$.courseDetails[0].courseStatus.id").value(9))
+        .andExpect(jsonPath("$.courseDetails[0].courseStatus.courseId").value(9))
+        .andExpect(jsonPath("$.courseDetails[0].courseStatus.status").value("仮申込"))
+        .andExpect(jsonPath("$.courseDetails[1].courseStatus.id").value(10))
+        .andExpect(jsonPath("$.courseDetails[1].courseStatus.courseId").value(10))
+        .andExpect(jsonPath("$.courseDetails[1].courseStatus.status").value("仮申込"))
+        // MvcResultからレスポンスを取得し、中身をコンソールに出力する。
+        .andExpect(result -> {
+          result.getResponse().setCharacterEncoding("UTF-8");
+          String content = result.getResponse().getContentAsString();
+          System.out.println("Response Content: " + content);
+
+        });
+
+  }
+
 //  @Test
 //  void 受講生の新規登録_異常系_すでに登録されているメールアドレスを指定したときに例外がスローされること()
 //      throws Exception {
