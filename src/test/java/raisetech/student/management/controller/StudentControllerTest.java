@@ -96,12 +96,9 @@ class StudentControllerTest {
   @Test
   void 受講生詳細の一覧検索_エンドポイントでサービスの処理が適切に呼び出されて処理成功のレスポンスが返ってくること()
       throws Exception {
-    // 事前準備
-    StudentSearchCriteria criteria = new StudentSearchCriteria();
-
     // 実行と検証
     mockMvc.perform(
-            MockMvcRequestBuilders.get("/students").flashAttr("criteria", criteria))
+            MockMvcRequestBuilders.get("/students"))
         .andExpect(status().isOk());
 
     // 検証：適切な型の引数を入力した際に１回実行されることを確認
@@ -116,7 +113,7 @@ class StudentControllerTest {
 
     // 実行と検証
     mockMvc.perform(
-            MockMvcRequestBuilders.get("/students/courses").flashAttr("criteria", criteria))
+            MockMvcRequestBuilders.get("/students/courses"))
         .andExpect(status().isOk());
 
     // 検証：適切な型の引数を入力した際に１回実行されることを確認
