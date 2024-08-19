@@ -411,12 +411,12 @@ class StudentControllerTest {
                             "studentCourses": [
                                 {
                                     "id": 1,
-                                    "student_id": 999,
+                                    "student_id": 1,
                                     "courseName": "Java"
                                 },
                                 {
-                                    "id":2,
-                                    "student_id": 999,
+                                    "id":999,
+                                    "student_id": 1,
                                     "courseName": "Ruby"
                                 }
                             ]

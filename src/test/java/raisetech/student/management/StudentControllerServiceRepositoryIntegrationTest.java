@@ -4,8 +4,10 @@ import static org.hamcrest.Matchers.contains;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static raisetech.student.management.model.data.Gender.男性;
 import static raisetech.student.management.model.data.Status.仮申込;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -28,9 +30,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import raisetech.student.management.model.data.CourseSearchCriteria;
-import raisetech.student.management.model.data.Gender;
 import raisetech.student.management.model.data.StudentSearchCriteria;
 
 @SpringBootTest
@@ -161,7 +163,7 @@ public class StudentControllerServiceRepositoryIntegrationTest {
         // すべてのリクエストパラメータを入力し、条件に合致するものが一つだけ存在するケース。
         Arguments.of(new StudentSearchCriteria("山田太郎", "ヤマダタロウ",
                 "たろう", "taro.yamada@example.com", "東京都", 10, 30,
-                Gender.男性, false, "Java",
+                男性, false, "Java",
                 LocalDate.of(2024, 3, 1),
                 LocalDate.of(2024, 5, 1),
                 LocalDate.of(2024, 6, 1),
@@ -449,6 +451,7 @@ public class StudentControllerServiceRepositoryIntegrationTest {
             )
             .accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
+        // 以下、ユーザー側に出力されるIntegratedDetailのJSON配列が期待する値になっているかを確認。
         // studentの検証
         .andExpect(jsonPath("$.studentDetail.student.id").value(6))
         .andExpect(jsonPath("$.studentDetail.student.fullname").value("田中昭三"))
@@ -585,6 +588,8 @@ public class StudentControllerServiceRepositoryIntegrationTest {
 
         });
 
+    // データベース内が更新されているかどうかは、Service-Repositoryの結合テストで確認しているため、省略。
+
   }
 
   @Test
@@ -628,323 +633,188 @@ public class StudentControllerServiceRepositoryIntegrationTest {
         });
   }
 
-//  @Test
-//  void 受講生の更新_正常系_エンドポイントでサービスの処理が適切に呼び出され_更新処理が成功しました_というメッセージが返ってくること()
-//      throws Exception {
-//
-//    // 実行と検証
-//    mockMvc.perform(MockMvcRequestBuilders.put("/students/update")
-//            .contentType(MediaType.APPLICATION_JSON)
-//            .content(
-//                """
-//                        {
-//                            "student": {
-//                                "id": 1,
-//                                "fullname": "田中昭三",
-//                                "furigana": "たなかしょうぞう",
-//                                "nickname": "ショーゾー",
-//                                "mail": "shozo@example.com",
-//                                "address": "東京",
-//                                "age": 56,
-//                                "gender": "男性",
-//                                "remark": "更新のテストです。年齢を56に、deletedをtrueにしています。",
-//                                "deleted": true
-//                            },
-//                            "studentCourses": [
-//                                {
-//                                    "id": 1,
-//                                    "student_id": 1,
-//                                    "courseName": "Java"
-//                                },
-//                                {
-//                                    "id":2,
-//                                    "student_id": 1,
-//                                    "courseName": "Ruby"
-//                                }
-//                            ]
-//                        }
-//                    """
-//            ))
-//        .andExpect(status().isOk())
-//        .andExpect(content().string("更新処理が成功しました"));
-//
-//    verify(service, times(1)).updateStudent(any());
-//
-//  }
-//
-//  @Test
-//  void 受講生の更新_異常系_存在しない受講生IDを指定したときに例外をスローすること()
-//      throws Exception {
-//    // 事前準備
-//    Student student = new Student();
-//    student.setId(999);
-//    StudentDetail studentDetail = new StudentDetail();
-//    studentDetail.setStudent(student);
-//
-//    String expectedErrorMessage =
-//        "受講生ID 「" + studentDetail.getStudent().getId() + "」は存在しません";
-//
-//    doThrow(new ResourceNotFoundException(expectedErrorMessage))
-//        .when(service).updateStudent(any(StudentDetail.class));
-//
-//    // 実行と検証
-//    mockMvc.perform(MockMvcRequestBuilders.put("/students/update")
-//            .contentType(MediaType.APPLICATION_JSON)
-//            .content(
-//                """
-//                        {
-//                            "student": {
-//                                "id": 999,
-//                                "fullname": "田中昭三",
-//                                "furigana": "たなかしょうぞう",
-//                                "nickname": "ショーゾー",
-//                                "mail": "shozo@example.com",
-//                                "address": "東京",
-//                                "age": 56,
-//                                "gender": "男性",
-//                                "remark": "更新のテストです。年齢を56に、deletedをtrueにしています。",
-//                                "deleted": true
-//                            },
-//                            "studentCourses": [
-//                                {
-//                                    "id": 1,
-//                                    "student_id": 999,
-//                                    "courseName": "Java"
-//                                },
-//                                {
-//                                    "id":2,
-//                                    "student_id": 999,
-//                                    "courseName": "Ruby"
-//                                }
-//                            ]
-//                        }
-//                    """
-//            ))
-//        .andExpect(status().isNotFound())
-//        .andExpect(jsonPath("$.message").value(expectedErrorMessage));
-//
-//  }
-//
-//  @Test
-//  void 受講生の更新_異常系_存在しない受講生コースIDを指定したときに例外をスローすること()
-//      throws Exception {
-//    // 事前準備
-//    StudentCourse studentCourse = new StudentCourse();
-//    studentCourse.setId(999);
-//    List<StudentCourse> studentCourses = new ArrayList<>();
-//    studentCourses.add(studentCourse);
-//    StudentDetail studentDetail = new StudentDetail();
-//    studentDetail.setStudentCourses(studentCourses);
-//
-//    String expectedErrorMessage =
-//        "受講生コースID 「" + studentDetail.getStudentCourses().getFirst().getId()
-//            + "」は存在しません";
-//
-//    doThrow(new ResourceNotFoundException(expectedErrorMessage))
-//        .when(service).updateStudent(any(StudentDetail.class));
-//
-//    // 実行と検証
-//    mockMvc.perform(MockMvcRequestBuilders.put("/students/update")
-//            .contentType(MediaType.APPLICATION_JSON)
-//            .content(
-//                """
-//                        {
-//                            "student": {
-//                                "id": 1,
-//                                "fullname": "田中昭三",
-//                                "furigana": "たなかしょうぞう",
-//                                "nickname": "ショーゾー",
-//                                "mail": "shozo@example.com",
-//                                "address": "東京",
-//                                "age": 56,
-//                                "gender": "男性",
-//                                "remark": "更新のテストです。年齢を56に、deletedをtrueにしています。",
-//                                "deleted": true
-//                            },
-//                            "studentCourses": [
-//                                {
-//                                    "id": 1,
-//                                    "student_id": 999,
-//                                    "courseName": "Java"
-//                                },
-//                                {
-//                                    "id":2,
-//                                    "student_id": 999,
-//                                    "courseName": "Ruby"
-//                                }
-//                            ]
-//                        }
-//                    """
-//            ))
-//        .andExpect(status().isNotFound())
-//        .andExpect(jsonPath("$.message").value(expectedErrorMessage));
-//
-//  }
-//
-//  @Test
-//  void コース申込状況の更新_正常系_エンドポイントでサービスの処理が適切に呼び出され_更新処理が成功しました_というメッセージが返ってくること()
-//      throws Exception {
-//
-//    // 実行と検証
-//    mockMvc.perform(MockMvcRequestBuilders.put("/students/courses/statuses/update")
-//            .contentType(MediaType.APPLICATION_JSON)
-//            .content(
-//                """
-//                    {"courseId":1, "status":"受講中"}
-//                    """
-//            ))
-//        .andExpect(status().isOk())
-//        .andExpect(content().string("更新処理が成功しました"));
-//
-//    verify(service, times(1)).updateCourseStatus(any());
-//
-//  }
-//
-//  @Test
-//  void コース申込状況の更新_異常系_存在しない受講生コースIDを指定したときに例外をスローすること()
-//      throws Exception {
-//    // 事前準備
-//    CourseStatus courseStatus = new CourseStatus();
-//    courseStatus.setCourseId(999);
-//
-//    String expectedErrorMessage =
-//        "受講生コースID 「" + courseStatus.getCourseId() + "」は存在しません";
-//
-//    doThrow(new ResourceNotFoundException(expectedErrorMessage))
-//        .when(service).updateCourseStatus(any(CourseStatus.class));
-//
-//    // 実行と検証
-//    mockMvc.perform(MockMvcRequestBuilders.put("/students/courses/statuses/update")
-//            .contentType(MediaType.APPLICATION_JSON)
-//            .content(
-//                """
-//                    {"courseId":999, "status":"受講中"}
-//                    """
-//            ))
-//        .andExpect(status().isNotFound())
-//        .andExpect(jsonPath("$.message").value(expectedErrorMessage));
-//
-//  }
-//
-//  @Test
-//  void 受講生詳細情報の入力チェック_リクエスト可能な情報がすべて適切な場合に入力チェックがかからないこと()
-//      throws Exception {
-//    // 事前準備
-//    int id = 666;
-//    StudentDetail studentDetail = createTestStudentDetail(id);
-//
-//    studentDetail.getStudent().setFullname("田中昭三");
-//    studentDetail.getStudent().setFurigana("たなかしょうぞう");
-//    studentDetail.getStudent().setNickname("ショーゾー");
-//    studentDetail.getStudent().setMail("shozo@example.com");
-//    studentDetail.getStudent().setAddress("東京");
-//    studentDetail.getStudent().setAge(55);
-//    studentDetail.getStudent().setGender(男性);
-//    studentDetail.getStudent().setRemark("新規登録のテストです");
-//    studentDetail.getStudent().setDeleted(false);
-//
-//    studentDetail.getStudentCourses().get(0).setCourseName("Java");
-//    studentDetail.getStudentCourses().get(1).setCourseName("Ruby");
-//
-//    Set<ConstraintViolation<StudentDetail>> violations = validator.validate(studentDetail);
-//
-//    // 検証
-//    assertEquals(0, violations.size());
-//
-//  }
-//
-//  @Test
-//  void 受講生詳細情報の入力チェック_Gender以外のリクエスト可能な情報のうち入力値の指定がある項目が不適切な場合に入力チェックがかかること()
-//      throws Exception {
-//    // 事前準備
-//    int id = 666;
-//    StudentDetail studentDetail = createTestStudentDetail(id);
-//
-//    studentDetail.getStudent().setFullname(""); // fullnameは空白を許容しない
-//    studentDetail.getStudent().setFurigana(""); // fuliganaは空白を許容しない
-//    studentDetail.getStudent().setNickname("ショーゾー");
-//    studentDetail.getStudent().setMail("shozo&example.com"); // mailはメールアドレス以外の入力値を許容しない
-//    studentDetail.getStudent().setAddress("東京");
-//    studentDetail.getStudent().setAge(55);
-//    studentDetail.getStudent().setGender(男性);
-//    studentDetail.getStudent().setRemark("新規登録のテストです");
-//    studentDetail.getStudent().setDeleted(false);
-//
-//    studentDetail.getStudentCourses().get(0).setCourseName(""); // courseNameは空白を許容しない
-//    studentDetail.getStudentCourses().get(1).setCourseName(""); // courseNameは空白を許容しない
-//
-//    Set<ConstraintViolation<StudentDetail>> violations = validator.validate(studentDetail);
-//
-//    // 検証
-//    assertEquals(5, violations.size());
-//
-//    Map<String, String> violationMessages = new HashMap<>();
-//    for (ConstraintViolation<StudentDetail> violation : violations) {
-//      String propertyPath = violation.getPropertyPath().toString();
-//      String message = violation.getMessage();
-//      violationMessages.put(propertyPath, message);
-//    }
-//
-//    assertTrue(violationMessages.containsKey("student.fullname"));
-//    assertEquals("空白は許可されていません", violationMessages.get("student.fullname"));
-//
-//    assertTrue(violationMessages.containsKey("student.furigana"));
-//    assertEquals("空白は許可されていません", violationMessages.get("student.furigana"));
-//
-//    assertTrue(violationMessages.containsKey("student.mail"));
-//    assertEquals("電子メールアドレスとして正しい形式にしてください",
-//        violationMessages.get("student.mail"));
-//
-//    assertTrue(violationMessages.containsKey("studentCourses[0].courseName"));
-//    assertEquals("空白は許可されていません", violationMessages.get("studentCourses[0].courseName"));
-//
-//    assertTrue(violationMessages.containsKey("studentCourses[1].courseName"));
-//    assertEquals("空白は許可されていません", violationMessages.get("studentCourses[1].courseName"));
-//
-//  }
-//
-//  @Test
-//  void コース申込状況の入力チェック_リクエスト可能な情報がすべて適切な場合に入力チェックがかからないこと()
-//      throws Exception {
-//    // 事前準備
-//    CourseStatus courseStatus = new CourseStatus();
-//
-//    courseStatus.setId(111);
-//    courseStatus.setCourseId(222);
-//    courseStatus.setStatus(仮申込);
-//
-//    Set<ConstraintViolation<CourseStatus>> violations = validator.validate(courseStatus);
-//
-//    // 検証
-//    assertEquals(0, violations.size());
-//
-//  }
-//
-//  @Test
-//  void コース申込状況の入力チェック_リクエスト可能な情報のうち入力値の指定がある項目が不適切な場合に入力チェックがかかること()
-//      throws Exception {
-//    // 事前準備
-//    CourseStatus courseStatus = new CourseStatus();
-//
-//    courseStatus.setId(111); // ユーザーがリクエストできない情報のため検証不要
-//    courseStatus.setCourseId(222); // ユーザーがリクエストできない情報のため検証不要
-//    courseStatus.setStatus(null); // statusはnullを許容しない
-//
-//    Set<ConstraintViolation<CourseStatus>> violations = validator.validate(courseStatus);
-//
-//    // 検証
-//    assertEquals(1, violations.size());
-//
-//    Map<String, String> violationMessages = new HashMap<>();
-//    for (ConstraintViolation<CourseStatus> violation : violations) {
-//      String propertyPath = violation.getPropertyPath().toString();
-//      String message = violation.getMessage();
-//      violationMessages.put(propertyPath, message);
-//    }
-//
-//    assertTrue(violationMessages.containsKey("status"));
-//    assertEquals("null は許可されていません", violationMessages.get("status"));
-//
-//  }
+  @Test
+  void 受講生の更新_正常系_JSON形式のリクエストボディを指定して_更新処理が成功しました_というメッセージが返ってくること()
+      throws Exception {
+
+    // 実行と検証
+    mockMvc.perform(MockMvcRequestBuilders.put("/students/update")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(
+                """
+                        {
+                            "student": {
+                                "id": 1,
+                                "fullname": "山田太郎2",
+                                "furigana": "たろう2",
+                                "nickname": "ショーゾー2",
+                                "mail": "taro2.yamada@example.com",
+                                "address": "東京都2",
+                                "age": 21,
+                                "gender": "その他",
+                                "deleted": true,
+                                "remark": "更新のテストです。"
+                            },
+                            "studentCourses": [
+                                {
+                                    "id": 1,
+                                    "student_id": 1,
+                                    "courseName": "Java2"
+                                },
+                                {
+                                    "id":2,
+                                    "student_id": 1,
+                                    "courseName": "Ruby2"
+                                }
+                            ]
+                        }
+                    """
+            )
+            .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(result -> {
+          result.getResponse().setCharacterEncoding("UTF-8");
+          String content = result.getResponse().getContentAsString();
+          System.out.println("Response Content: " + content);
+        })
+        .andExpect(content().string("更新処理が成功しました"));
+
+    // データベース内が更新されているかどうかは、Service-Repositoryの結合テストで確認しているため、省略。
+
+  }
+
+  @Test
+  void 受講生の更新_異常系_存在しない受講生IDを指定したときに例外をスローすること()
+      throws Exception {
+    // 実行と検証
+    mockMvc.perform(MockMvcRequestBuilders.put("/students/update")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(
+                """
+                        {
+                            "student": {
+                                "id": 999,
+                                "fullname": "田中昭三",
+                                "furigana": "たなかしょうぞう",
+                                "nickname": "ショーゾー",
+                                "mail": "shozo@example.com",
+                                "address": "東京",
+                                "age": 56,
+                                "gender": "男性",
+                                "remark": "更新のテストです。",
+                                "deleted": true
+                            },
+                            "studentCourses": [
+                                {
+                                    "id": 1,
+                                    "student_id": 999,
+                                    "courseName": "Java"
+                                },
+                                {
+                                    "id":2,
+                                    "student_id": 999,
+                                    "courseName": "Ruby"
+                                }
+                            ]
+                        }
+                    """
+            ))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.message").value("受講生ID 「999」は存在しません"))
+        .andExpect(result -> {
+          result.getResponse().setCharacterEncoding("UTF-8");
+          String content = result.getResponse().getContentAsString();
+          System.out.println("Response Content: " + content);
+        });
+
+  }
+
+  @Test
+  void 受講生の更新_異常系_存在しない受講生コースIDを指定したときに例外をスローすること()
+      throws Exception {
+    // 実行と検証
+    mockMvc.perform(MockMvcRequestBuilders.put("/students/update")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(
+                """
+                        {
+                            "student": {
+                                "id": 1,
+                                "fullname": "田中昭三",
+                                "furigana": "たなかしょうぞう",
+                                "nickname": "ショーゾー",
+                                "mail": "shozo@example.com",
+                                "address": "東京",
+                                "age": 56,
+                                "gender": "男性",
+                                "remark": "更新のテストです。年齢を56に、deletedをtrueにしています。",
+                                "deleted": true
+                            },
+                            "studentCourses": [
+                                {
+                                    "id": 1,
+                                    "student_id": 1,
+                                    "courseName": "Java"
+                                },
+                                {
+                                    "id":999,
+                                    "student_id": 1,
+                                    "courseName": "Ruby"
+                                }
+                            ]
+                        }
+                    """
+            ))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.message")
+            .value("受講生コースID 「999」は存在しません")) //
+        .andExpect(result -> {
+          result.getResponse().setCharacterEncoding("UTF-8");
+          String content = result.getResponse().getContentAsString();
+          System.out.println("Response Content: " + content);
+        });
+
+  }
+
+  @Test
+  void コース申込状況の更新_正常系_エンドポイントでサービスの処理が適切に呼び出され_更新処理が成功しました_というメッセージが返ってくること()
+      throws Exception {
+    mockMvc.perform(MockMvcRequestBuilders.put("/students/courses/statuses/update")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(
+                """
+                    {"courseId":1, "status":"受講中"}
+                    """
+            ))
+        .andExpect(status().isOk())
+        .andExpect(result -> {
+          result.getResponse().setCharacterEncoding("UTF-8");
+          String content = result.getResponse().getContentAsString();
+          System.out.println("Response Content: " + content);
+        })
+        .andExpect(content().string("更新処理が成功しました"));
+
+  }
+
+  @Test
+  void コース申込状況の更新_異常系_存在しない受講生コースIDを指定したときに例外をスローすること()
+      throws Exception {
+    // 実行と検証
+    mockMvc.perform(MockMvcRequestBuilders.put("/students/courses/statuses/update")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(
+                """
+                    {"courseId":999, "status":"受講中"}
+                    """
+            ))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.message").value("受講生コースID 「999」は存在しません"))
+        .andExpect(result -> {
+          result.getResponse().setCharacterEncoding("UTF-8");
+          String content = result.getResponse().getContentAsString();
+          System.out.println("Response Content: " + content);
+        });
+
+  }
 
 }
