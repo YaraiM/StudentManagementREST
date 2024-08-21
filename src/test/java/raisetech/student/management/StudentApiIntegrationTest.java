@@ -12,8 +12,6 @@ import static raisetech.student.management.model.data.Status.仮申込;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.jsonpath.DocumentContext;
-import com.jayway.jsonpath.JsonPath;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import java.time.LocalDate;
@@ -38,7 +36,7 @@ import raisetech.student.management.model.data.StudentSearchCriteria;
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-public class StudentControllerServiceRepositoryIntegrationTest {
+public class StudentApiIntegrationTest {
 
   @Autowired
   MockMvc mockMvc; //Spring MVCのエンドポイントをテストするためのモックオブジェクト
@@ -68,10 +66,8 @@ public class StudentControllerServiceRepositoryIntegrationTest {
             .param("nickname", criteria.getNickname())
             .param("mail", criteria.getMail())
             .param("address", criteria.getAddress())
-            .param("minAge",
-                criteria.getMinAge() != null ? String.valueOf(criteria.getMinAge()) : null)
-            .param("maxAge",
-                criteria.getMaxAge() != null ? String.valueOf(criteria.getMaxAge()) : null)
+            .param("minAge", getParamIntegerOrNull(criteria.getMinAge()))
+            .param("maxAge", getParamIntegerOrNull(criteria.getMaxAge()))
             .param("gender", criteria.getGender() != null ? criteria.getGender().toString() : null)
             .param("deleted",
                 criteria.getDeleted() != null ? String.valueOf(criteria.getDeleted()) : null)
@@ -107,23 +103,13 @@ public class StudentControllerServiceRepositoryIntegrationTest {
             jsonPath("$[*].studentCourses[*].courseName", contains(expectedCourseNames.toArray())))
         .andExpect(
             jsonPath("$[*].studentCourses[*].startDate", contains(expectedStartDates.toArray())))
-        .andExpect(jsonPath("$[*].studentCourses[*].endDate", contains(expectedEndDates.toArray())))
+        .andExpect(
+            jsonPath("$[*].studentCourses[*].endDate", contains(expectedEndDates.toArray())));
 
-        // MvcResultからレスポンスを取得し、中身をコンソールに出力する。
-        .andExpect(result -> {
-          result.getResponse().setCharacterEncoding("UTF-8");
-          String content = result.getResponse().getContentAsString();
-          System.out.println("Response Content: " + content);
+  }
 
-          // JSONPathのIdsの結果を直接確認
-          DocumentContext context = JsonPath.parse(content);
-          List<Integer> ids = context.read("$[*].student.id");
-          System.out.println("Extracted IDs: " + ids);
-
-          // 期待値を出力して直接目視確認する
-          System.out.println("Expected IDs: " + expectedStudentIds);
-        });
-
+  private static String getParamIntegerOrNull(Integer parameter) {
+    return parameter != null ? String.valueOf(parameter) : null;
   }
 
   /**
@@ -251,15 +237,7 @@ public class StudentControllerServiceRepositoryIntegrationTest {
         .andExpect(jsonPath("$[*].courseStatus.id", contains(expectedStatusIds.toArray())))
         .andExpect(
             jsonPath("$[*].courseStatus.courseId", contains(expectedCourseIdsInStatus.toArray())))
-        .andExpect(jsonPath("$[*].courseStatus.status", contains(expectedStatus.toArray())))
-
-        // MvcResultからレスポンスを取得し、中身をコンソールに出力する。
-        .andExpect(result -> {
-          result.getResponse().setCharacterEncoding("UTF-8");
-          String content = result.getResponse().getContentAsString();
-          System.out.println("Response Content: " + content);
-
-        });
+        .andExpect(jsonPath("$[*].courseStatus.status", contains(expectedStatus.toArray())));
   }
 
   /**
@@ -350,14 +328,7 @@ public class StudentControllerServiceRepositoryIntegrationTest {
         .andExpect(jsonPath("$.studentCourses[1].studentId").value(1))
         .andExpect(jsonPath("$.studentCourses[1].courseName").value("Ruby"))
         .andExpect(jsonPath("$.studentCourses[1].startDate").value("2024-04-02T13:00:00"))
-        .andExpect(jsonPath("$.studentCourses[1].endDate").value("2024-08-01T15:00:00"))
-        // MvcResultからレスポンスを取得し、中身をコンソールに出力する。
-        .andExpect(result -> {
-          result.getResponse().setCharacterEncoding("UTF-8");
-          String content = result.getResponse().getContentAsString();
-          System.out.println("Response Content: " + content);
-
-        });
+        .andExpect(jsonPath("$.studentCourses[1].endDate").value("2024-08-01T15:00:00"));
 
   }
 
@@ -368,14 +339,8 @@ public class StudentControllerServiceRepositoryIntegrationTest {
     mockMvc.perform(get("/students/detail")
             .param("id", String.valueOf(999)))
         .andExpect(status().isNotFound())
-        .andExpect(jsonPath("$.message").value("受講生ID 「" + 999 + "」は存在しません"))
-        // MvcResultからレスポンスを取得し、中身をコンソールに出力する。
-        .andExpect(result -> {
-          result.getResponse().setCharacterEncoding("UTF-8");
-          String content = result.getResponse().getContentAsString();
-          System.out.println("Response Content: " + content);
+        .andExpect(jsonPath("$.message").value("受講生ID 「" + 999 + "」は存在しません"));
 
-        });
   }
 
   @Test
@@ -391,13 +356,8 @@ public class StudentControllerServiceRepositoryIntegrationTest {
         .andExpect(jsonPath("$.studentCourse.endDate").value("2024-07-31T17:00:00"))
         .andExpect(jsonPath("$.courseStatus.id").value(1))
         .andExpect(jsonPath("$.courseStatus.courseId").value(1))
-        .andExpect(jsonPath("$.courseStatus.status").value("仮申込"))
-        // MvcResultからレスポンスを取得し、中身をコンソールに出力する。
-        .andExpect(result -> {
-          result.getResponse().setCharacterEncoding("UTF-8");
-          String content = result.getResponse().getContentAsString();
-          System.out.println("Response Content: " + content);
-        });
+        .andExpect(jsonPath("$.courseStatus.status").value("仮申込"));
+
   }
 
   @Test
@@ -407,13 +367,7 @@ public class StudentControllerServiceRepositoryIntegrationTest {
     mockMvc.perform(get("/students/courses/detail")
             .param("id", String.valueOf(999)))
         .andExpect(status().isNotFound())
-        .andExpect(jsonPath("$.message").value("受講生コースID 「" + 999 + "」は存在しません"))
-        // MvcResultからレスポンスを取得し、中身をコンソールに出力する。
-        .andExpect(result -> {
-          result.getResponse().setCharacterEncoding("UTF-8");
-          String content = result.getResponse().getContentAsString();
-          System.out.println("Response Content: " + content);
-        });
+        .andExpect(jsonPath("$.message").value("受講生コースID 「" + 999 + "」は存在しません"));
 
   }
 
@@ -579,14 +533,7 @@ public class StudentControllerServiceRepositoryIntegrationTest {
         .andExpect(jsonPath("$.courseDetails[0].courseStatus.status").value("仮申込"))
         .andExpect(jsonPath("$.courseDetails[1].courseStatus.id").value(10))
         .andExpect(jsonPath("$.courseDetails[1].courseStatus.courseId").value(10))
-        .andExpect(jsonPath("$.courseDetails[1].courseStatus.status").value("仮申込"))
-        // MvcResultからレスポンスを取得し、中身をコンソールに出力する。
-        .andExpect(result -> {
-          result.getResponse().setCharacterEncoding("UTF-8");
-          String content = result.getResponse().getContentAsString();
-          System.out.println("Response Content: " + content);
-
-        });
+        .andExpect(jsonPath("$.courseDetails[1].courseStatus.status").value("仮申込"));
 
     // データベース内が更新されているかどうかは、Service-Repositoryの結合テストで確認しているため、省略。
 
@@ -624,13 +571,8 @@ public class StudentControllerServiceRepositoryIntegrationTest {
             ))
         .andExpect(status().isConflict())
         .andExpect(jsonPath("$.message").value(
-            "メールアドレス(taro.yamada@example.com)はすでに登録されているため使用できません。"))
-        // MvcResultからレスポンスを取得し、中身をコンソールに出力する。
-        .andExpect(result -> {
-          result.getResponse().setCharacterEncoding("UTF-8");
-          String content = result.getResponse().getContentAsString();
-          System.out.println("Response Content: " + content);
-        });
+            "メールアドレス(taro.yamada@example.com)はすでに登録されているため使用できません。"));
+
   }
 
   @Test
@@ -672,16 +614,11 @@ public class StudentControllerServiceRepositoryIntegrationTest {
             )
             .accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(result -> {
-          result.getResponse().setCharacterEncoding("UTF-8");
-          String content = result.getResponse().getContentAsString();
-          System.out.println("Response Content: " + content);
-        })
+        .andExpect(result -> result.getResponse().setCharacterEncoding("UTF-8"))
         .andExpect(content().string("更新処理が成功しました"));
-
     // データベース内が更新されているかどうかは、Service-Repositoryの結合テストで確認しているため、省略。
-
   }
+
 
   @Test
   void 受講生の更新_異常系_存在しない受講生IDを指定したときに例外をスローすること()
@@ -720,12 +657,7 @@ public class StudentControllerServiceRepositoryIntegrationTest {
                     """
             ))
         .andExpect(status().isNotFound())
-        .andExpect(jsonPath("$.message").value("受講生ID 「999」は存在しません"))
-        .andExpect(result -> {
-          result.getResponse().setCharacterEncoding("UTF-8");
-          String content = result.getResponse().getContentAsString();
-          System.out.println("Response Content: " + content);
-        });
+        .andExpect(jsonPath("$.message").value("受講生ID 「999」は存在しません"));
 
   }
 
@@ -767,12 +699,7 @@ public class StudentControllerServiceRepositoryIntegrationTest {
             ))
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.message")
-            .value("受講生コースID 「999」は存在しません")) //
-        .andExpect(result -> {
-          result.getResponse().setCharacterEncoding("UTF-8");
-          String content = result.getResponse().getContentAsString();
-          System.out.println("Response Content: " + content);
-        });
+            .value("受講生コースID 「999」は存在しません"));
 
   }
 
@@ -787,11 +714,7 @@ public class StudentControllerServiceRepositoryIntegrationTest {
                     """
             ))
         .andExpect(status().isOk())
-        .andExpect(result -> {
-          result.getResponse().setCharacterEncoding("UTF-8");
-          String content = result.getResponse().getContentAsString();
-          System.out.println("Response Content: " + content);
-        })
+        .andExpect(result -> result.getResponse().setCharacterEncoding("UTF-8"))
         .andExpect(content().string("更新処理が成功しました"));
 
   }
@@ -808,12 +731,7 @@ public class StudentControllerServiceRepositoryIntegrationTest {
                     """
             ))
         .andExpect(status().isNotFound())
-        .andExpect(jsonPath("$.message").value("受講生コースID 「999」は存在しません"))
-        .andExpect(result -> {
-          result.getResponse().setCharacterEncoding("UTF-8");
-          String content = result.getResponse().getContentAsString();
-          System.out.println("Response Content: " + content);
-        });
+        .andExpect(jsonPath("$.message").value("受講生コースID 「999」は存在しません"));
 
   }
 
