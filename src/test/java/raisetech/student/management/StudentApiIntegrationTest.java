@@ -31,6 +31,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import raisetech.student.management.model.data.CourseSearchCriteria;
+import raisetech.student.management.model.data.Gender;
+import raisetech.student.management.model.data.Status;
 import raisetech.student.management.model.data.StudentSearchCriteria;
 
 @SpringBootTest
@@ -45,6 +47,27 @@ public class StudentApiIntegrationTest {
   private ObjectMapper objectMapper; // オブジェクトをJSON文字列に変換するためのオブジェクト
 
   private Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+
+
+  private static String getParamIntegerOrNull(Integer parameter) {
+    return parameter != null ? String.valueOf(parameter) : null;
+  }
+
+  private static String getParamBooleanOrNull(Boolean parameter) {
+    return parameter != null ? String.valueOf(parameter) : null;
+  }
+
+  private static String getParamLocalDateOrNull(LocalDate parameter) {
+    return parameter != null ? parameter.toString() : null;
+  }
+
+  private static String getParamGenderOrNull(Gender parameter) {
+    return parameter != null ? String.valueOf(parameter) : null;
+  }
+
+  private static String getParamStatusOrNull(Status parameter) {
+    return parameter != null ? parameter.toString() : null;
+  }
 
   @ParameterizedTest
   @MethodSource("provideStudentTestCases")
@@ -68,18 +91,13 @@ public class StudentApiIntegrationTest {
             .param("address", criteria.getAddress())
             .param("minAge", getParamIntegerOrNull(criteria.getMinAge()))
             .param("maxAge", getParamIntegerOrNull(criteria.getMaxAge()))
-            .param("gender", criteria.getGender() != null ? criteria.getGender().toString() : null)
-            .param("deleted",
-                criteria.getDeleted() != null ? String.valueOf(criteria.getDeleted()) : null)
+            .param("gender", getParamGenderOrNull(criteria.getGender()))
+            .param("deleted", getParamBooleanOrNull(criteria.getDeleted()))
             .param("courseName", criteria.getCourseName())
-            .param("startDateFrom",
-                criteria.getStartDateFrom() != null ? criteria.getStartDateFrom().toString() : null)
-            .param("startDateTo",
-                criteria.getStartDateTo() != null ? criteria.getStartDateTo().toString() : null)
-            .param("endDateFrom",
-                criteria.getEndDateFrom() != null ? criteria.getEndDateFrom().toString() : null)
-            .param("endDateTo",
-                criteria.getEndDateTo() != null ? criteria.getEndDateTo().toString() : null)
+            .param("startDateFrom", getParamLocalDateOrNull(criteria.getStartDateFrom()))
+            .param("startDateTo", getParamLocalDateOrNull(criteria.getStartDateTo()))
+            .param("endDateFrom", getParamLocalDateOrNull(criteria.getEndDateFrom()))
+            .param("endDateTo", getParamLocalDateOrNull(criteria.getEndDateTo()))
             .accept(MediaType.APPLICATION_JSON)
         )
         .andExpect(status().isOk())
@@ -106,10 +124,6 @@ public class StudentApiIntegrationTest {
         .andExpect(
             jsonPath("$[*].studentCourses[*].endDate", contains(expectedEndDates.toArray())));
 
-  }
-
-  private static String getParamIntegerOrNull(Integer parameter) {
-    return parameter != null ? String.valueOf(parameter) : null;
   }
 
   /**
@@ -211,15 +225,11 @@ public class StudentApiIntegrationTest {
       throws Exception {
     mockMvc.perform(get("/students/courses")
             .param("courseName", criteria.getCourseName())
-            .param("startDateFrom",
-                criteria.getStartDateFrom() != null ? criteria.getStartDateFrom().toString() : null)
-            .param("startDateTo",
-                criteria.getStartDateTo() != null ? criteria.getStartDateTo().toString() : null)
-            .param("endDateFrom",
-                criteria.getEndDateFrom() != null ? criteria.getEndDateFrom().toString() : null)
-            .param("endDateTo",
-                criteria.getEndDateTo() != null ? criteria.getEndDateTo().toString() : null)
-            .param("status", criteria.getStatus() != null ? criteria.getStatus().toString() : null)
+            .param("startDateFrom", getParamLocalDateOrNull(criteria.getStartDateFrom()))
+            .param("startDateTo", getParamLocalDateOrNull(criteria.getStartDateTo()))
+            .param("endDateFrom", getParamLocalDateOrNull(criteria.getEndDateFrom()))
+            .param("endDateTo", getParamLocalDateOrNull(criteria.getEndDateTo()))
+            .param("status", getParamStatusOrNull(criteria.getStatus()))
             .accept(MediaType.APPLICATION_JSON)
         )
         .andExpect(status().isOk())
