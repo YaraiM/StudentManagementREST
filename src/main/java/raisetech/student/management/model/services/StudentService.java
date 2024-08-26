@@ -251,7 +251,11 @@ public class StudentService {
 
       CourseDetail courseDetail = new CourseDetail();
       courseDetail.setStudentCourse(studentCourse);
-      courseDetail.setCourseStatus(courseStatus);
+      // 返り値であるIntegratedDetailには、Repository層で追加されたstatus（仮申込）をセットする必要がある。
+      // RepositoryでuseGeneratedKeysを指定しているため、IDは自動で取得される。
+      // registerStudentの引数として渡されたstudentDetail内のオブジェクト（student、studentCourses）はデータベース登録後の値に更新される。
+      CourseStatus savedCourseStatus = repository.searchCourseStatus(studentCourse.getId());
+      courseDetail.setCourseStatus(savedCourseStatus);
 
       courseDetails.add(courseDetail);
 

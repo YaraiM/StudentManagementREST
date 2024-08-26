@@ -126,7 +126,7 @@ public class StudentController {
       )
   })
   @GetMapping("/students/courses/detail")
-  public CourseDetail getStudentCourses(
+  public CourseDetail getStudentCourse(
       @Parameter(description = "受講生コースのID") @RequestParam @NotNull int id) {
     return service.searchStudentCourse(id);
   }
