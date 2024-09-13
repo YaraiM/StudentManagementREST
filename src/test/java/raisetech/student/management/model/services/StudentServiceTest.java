@@ -339,9 +339,17 @@ class StudentServiceTest {
 
     StudentDetail studentDetail = new StudentDetail(student, studentCourses);
 
+    CourseStatus courseStatus1 = new CourseStatus();
+    CourseStatus courseStatus2 = new CourseStatus();
+    courseStatus1.setCourseId(courseId1);
+    courseStatus2.setCourseId(courseId2);
+
     doNothing().when(repository).registerStudent(any(Student.class));
     doNothing().when(repository).registerStudentCourses(any(StudentCourse.class));
     doNothing().when(repository).registerCourseStatus(any(CourseStatus.class));
+
+    when(repository.searchCourseStatus(studentCourse1.getId())).thenReturn(courseStatus1);
+    when(repository.searchCourseStatus(studentCourse2.getId())).thenReturn(courseStatus2);
 
     LocalDateTime testStartTime = LocalDateTime.now();
 
