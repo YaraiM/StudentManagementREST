@@ -58,6 +58,7 @@ class StudentControllerTest {
 
   private Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
+  //ここでロケールを設定しないと、Github Actions上でLinux環境（ubuntu）でテスト実行したときにバリデーションエラー時のメッセージが英語になりアサーションエラーが発生してしまう。
   @BeforeAll
   public static void setUp() {
     Locale.setDefault(new Locale("ja", "JP"));
