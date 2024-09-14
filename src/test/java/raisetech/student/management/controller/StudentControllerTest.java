@@ -22,8 +22,10 @@ import jakarta.validation.Validator;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -55,6 +57,11 @@ class StudentControllerTest {
   private StudentService service;
 
   private Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+
+  @BeforeAll
+  public static void setUp() {
+    Locale.setDefault(new Locale("ja", "JP"));
+  }
 
   /**
    * テスト用にStudentDetailオブジェクトを作成するメソッドです。受講生IDのみセットされたインスタンスが生成されます。
