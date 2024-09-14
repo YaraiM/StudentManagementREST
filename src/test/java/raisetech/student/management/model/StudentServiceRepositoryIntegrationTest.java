@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Transactional;
 import raisetech.student.management.model.data.CourseSearchCriteria;
 import raisetech.student.management.model.data.CourseStatus;
@@ -42,7 +43,10 @@ import raisetech.student.management.model.services.StudentService;
 
 @SpringBootTest(webEnvironment = WebEnvironment.NONE)
 @Transactional
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class StudentServiceRepositoryIntegrationTest {
+
+  //@DirtiesContextがないと、@SpringBootTest間でコンテキストが共有されるため、h2データベースが汚染される場合がある。
 
   // 結合テストのため、StudentServiceにDIされているConverter、RepositoryのMock化はしない
   @Autowired
