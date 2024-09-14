@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,7 +39,10 @@ import raisetech.student.management.model.data.StudentSearchCriteria;
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class StudentApiIntegrationTest {
+
+  //@DirtiesContextがないと、複数の@SpringBootTest間でコンテキストが共有されるため、h2データベースが汚染される場合がある。
 
   @Autowired
   MockMvc mockMvc; //Spring MVCのエンドポイントをテストするためのモックオブジェクト
