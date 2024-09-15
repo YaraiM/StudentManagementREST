@@ -70,7 +70,7 @@ jobs:
             if [ -f /etc/systemd/system/StudentManagementREST.service ]; then
               echo "already exists Service File"
             else
-            cat <<EOL | sudo tee -a /etc/systemd/system/StudentManagement.service
+            cat <<EOL | sudo tee -a /etc/systemd/system/StudentManagementREST.service
             [Unit]
             Description = StudentManagementREST App
             
