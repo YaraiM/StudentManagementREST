@@ -13,7 +13,7 @@ env:
   DEST_PATH: '/home/ec2-user/StudentManagementREST.jar'
 
 jobs:
-  test:
+  deploy:
 
     runs-on: ubuntu-latest
 
